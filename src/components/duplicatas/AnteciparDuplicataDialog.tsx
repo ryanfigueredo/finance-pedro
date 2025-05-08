@@ -14,11 +14,39 @@ import { useState } from "react";
 interface Props {
   numero: string;
   valor: number;
-  taxa: number; // Ex: 0.03 (3%)
+  taxa: number;
+  duplicataId: string;
 }
 
-export function AnteciparDuplicataDialog({ numero, valor, taxa }: Props) {
+export function AnteciparDuplicataDialog({
+  numero,
+  valor,
+  taxa,
+  duplicataId,
+}: Props) {
   const valorFinal = valor - valor * taxa;
+  const [loading, setLoading] = useState(false);
+
+  async function handleAntecipar() {
+    setLoading(true);
+    const res = await fetch("/api/antecipacoes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        duplicataId,
+        taxa,
+        valorFinal,
+      }),
+    });
+
+    setLoading(false);
+    if (res.ok) {
+      alert("Antecipação registrada com sucesso ✅");
+      window.location.reload(); // ou SWR mutate()
+    } else {
+      alert("Erro ao antecipar duplicata");
+    }
+  }
 
   return (
     <Dialog>
@@ -46,7 +74,9 @@ export function AnteciparDuplicataDialog({ numero, valor, taxa }: Props) {
         </div>
 
         <DialogFooter>
-          <Button>Confirmar antecipação</Button>
+          <Button onClick={handleAntecipar} disabled={loading}>
+            {loading ? "Enviando..." : "Confirmar antecipação"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
