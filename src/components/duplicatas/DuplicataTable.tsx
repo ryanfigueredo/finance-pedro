@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
@@ -6,31 +9,29 @@ import { AnteciparDuplicataDialog } from "./AnteciparDuplicataDialog";
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
 interface Duplicata {
+  id: string;
   numero: string;
-  cliente: string;
   valor: number;
   status: Status;
-  vencimento: Date;
+  vencimento: string;
+  cliente: {
+    nome: string;
+  };
 }
 
-const duplicatas: Duplicata[] = [
-  {
-    numero: "000123",
-    cliente: "Maria Souza",
-    valor: 5200,
-    status: "PENDENTE",
-    vencimento: new Date(),
-  },
-  {
-    numero: "000124",
-    cliente: "João Ferreira",
-    valor: 9900,
-    status: "PAGA",
-    vencimento: new Date(),
-  },
-];
-
 export function DuplicataTable() {
+  const [duplicatas, setDuplicatas] = useState<Duplicata[]>([]);
+
+  useEffect(() => {
+    async function fetchDuplicatas() {
+      const res = await fetch("/api/duplicatas");
+      const data = await res.json();
+      setDuplicatas(data);
+    }
+
+    fetchDuplicatas();
+  }, []);
+
   return (
     <div className="bg-white shadow-md rounded-2xl p-6 mt-6">
       <h2 className="text-lg font-semibold text-zinc-800 mb-4">
@@ -45,13 +46,14 @@ export function DuplicataTable() {
               <th className="text-left p-2">Valor</th>
               <th className="text-left p-2">Status</th>
               <th className="text-left p-2">Vencimento</th>
+              <th className="text-left p-2">Ações</th>
             </tr>
           </thead>
           <tbody>
             {duplicatas.map((d) => (
-              <tr key={d.numero} className="border-b last:border-none">
+              <tr key={d.id} className="border-b last:border-none">
                 <td className="p-2">{d.numero}</td>
-                <td className="p-2">{d.cliente}</td>
+                <td className="p-2">{d.cliente.nome}</td>
                 <td className="p-2">R$ {d.valor.toLocaleString("pt-BR")}</td>
                 <td className="p-2">
                   <Badge variant="outline" className={getBadgeColor(d.status)}>
@@ -59,15 +61,17 @@ export function DuplicataTable() {
                   </Badge>
                 </td>
                 <td className="p-2">
-                  {format(d.vencimento, "dd/MM/yyyy", { locale: ptBR })}
+                  {format(new Date(d.vencimento), "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
                 </td>
-
                 <td className="p-2">
                   {d.status === "PENDENTE" ? (
                     <AnteciparDuplicataDialog
                       numero={d.numero}
                       valor={d.valor}
                       taxa={0.03}
+                      duplicataId={d.id}
                     />
                   ) : (
                     "-"

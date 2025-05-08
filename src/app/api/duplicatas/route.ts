@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 
+// --- POST /api/duplicatas ---
 const schema = z.object({
   numero: z.string().min(1),
   valor: z.number(),
@@ -49,4 +50,16 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(duplicata, { status: 201 });
+}
+
+// --- GET /api/duplicatas ---
+export async function GET() {
+  const duplicatas = await prisma.duplicata.findMany({
+    orderBy: { emissao: "desc" },
+    include: {
+      cliente: { select: { nome: true } },
+    },
+  });
+
+  return NextResponse.json(duplicatas);
 }
