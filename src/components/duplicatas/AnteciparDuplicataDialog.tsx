@@ -42,7 +42,7 @@ export function AnteciparDuplicataDialog({
     setLoading(false);
     if (res.ok) {
       alert("Antecipação registrada com sucesso ✅");
-      window.location.reload(); // ou SWR mutate()
+      window.location.reload();
     } else {
       alert("Erro ao antecipar duplicata");
     }

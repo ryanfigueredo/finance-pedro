@@ -46,7 +46,7 @@ export function NovoClienteDialog() {
 
     if (res.ok) {
       alert("Cliente cadastrado com sucesso ✅");
-      window.location.reload(); // ou mutate() com SWR
+      window.location.reload();
     } else {
       const data = await res.json();
       alert(`Erro: ${data.error}`);
