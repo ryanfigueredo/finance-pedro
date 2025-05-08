@@ -5,6 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { AnteciparDuplicataDialog } from "./AnteciparDuplicataDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
@@ -21,6 +28,7 @@ interface Duplicata {
 
 export function DuplicataTable() {
   const [duplicatas, setDuplicatas] = useState<Duplicata[]>([]);
+  const [filtroStatus, setFiltroStatus] = useState("TODOS");
 
   useEffect(() => {
     async function fetchDuplicatas() {
@@ -32,11 +40,31 @@ export function DuplicataTable() {
     fetchDuplicatas();
   }, []);
 
+  const duplicatasFiltradas = duplicatas.filter(
+    (d) => filtroStatus === "TODOS" || d.status === filtroStatus
+  );
+
   return (
     <div className="bg-white shadow-md rounded-2xl p-6 mt-6">
-      <h2 className="text-lg font-semibold text-zinc-800 mb-4">
-        Duplicatas Emitidas
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-zinc-800">
+          Duplicatas Emitidas
+        </h2>
+
+        <Select onValueChange={setFiltroStatus} defaultValue="TODOS">
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filtrar por status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos</SelectItem>
+            <SelectItem value="PENDENTE">Pendente</SelectItem>
+            <SelectItem value="ANTECIPADA">Antecipada</SelectItem>
+            <SelectItem value="PAGA">Paga</SelectItem>
+            <SelectItem value="CANCELADA">Cancelada</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="text-zinc-500 border-b">
@@ -50,7 +78,7 @@ export function DuplicataTable() {
             </tr>
           </thead>
           <tbody>
-            {duplicatas.map((d) => (
+            {duplicatasFiltradas.map((d) => (
               <tr key={d.id} className="border-b last:border-none">
                 <td className="p-2">{d.numero}</td>
                 <td className="p-2">{d.cliente.nome}</td>

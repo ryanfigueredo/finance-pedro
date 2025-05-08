@@ -30,6 +30,11 @@ export function NovaDuplicataDialog() {
   const [observacoes, setObservacoes] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  const [clienteId, setClienteId] = useState("");
+
+  const { data: session } = useSession(); // ✅ esta linha deve estar aqui!
+
   const valorComDesconto = valor - valor * (desconto / 100);
 
   async function handleSubmit() {
@@ -59,10 +64,6 @@ export function NovaDuplicataDialog() {
       alert(`Erro ao emitir duplicata: ${data.error}`);
     }
   }
-
-  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
-  const [clienteId, setClienteId] = useState("");
-  const { data: session } = useSession();
 
   useEffect(() => {
     async function fetchClientes() {
