@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
+import { AnteciparDuplicataDialog } from "./AnteciparDuplicataDialog";
 
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
@@ -59,6 +60,18 @@ export function DuplicataTable() {
                 </td>
                 <td className="p-2">
                   {format(d.vencimento, "dd/MM/yyyy", { locale: ptBR })}
+                </td>
+
+                <td className="p-2">
+                  {d.status === "PENDENTE" ? (
+                    <AnteciparDuplicataDialog
+                      numero={d.numero}
+                      valor={d.valor}
+                      taxa={0.03}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </td>
               </tr>
             ))}
