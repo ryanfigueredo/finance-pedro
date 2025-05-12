@@ -15,31 +15,19 @@ const clienteSchema = z.object({
   negativado: z.boolean(),
 });
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-
-  try {
-    await prisma.cliente.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Cliente não encontrado ou erro interno" },
-      { status: 404 }
-    );
-  }
-}
-
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) {
-  const { id } = params;
+  const id = (await context).params.id;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "ID do cliente não informado" },
+      { status: 400 }
+    );
+  }
+
   const body = await req.json();
   const parse = clienteSchema.safeParse(body);
 
@@ -64,11 +52,38 @@ export async function PUT(
         taxaAntecipacao: data.taxaAntecipacao,
         taxaBancaria: data.taxaBancaria,
         taxaServico: data.taxaServico,
-        taxaNegativacao: data.negativado ? 3.5 : 0, // Exemplo de taxa
+        taxaNegativacao: data.negativado ? 3.5 : 0,
       },
     });
 
     return NextResponse.json(cliente);
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Cliente não encontrado ou erro interno" },
+      { status: 404 }
+    );
+  }
+}
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: { id?: string } }
+) {
+  const id = params?.id;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "ID do cliente não informado" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    await prisma.cliente.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
       { error: "Cliente não encontrado ou erro interno" },

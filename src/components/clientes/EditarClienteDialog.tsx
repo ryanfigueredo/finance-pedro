@@ -17,6 +17,8 @@ import {
   formatCPF,
   formatCNPJ,
 } from "@brazilian-utils/brazilian-utils";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 type Cliente = {
   id: string;
@@ -61,35 +63,39 @@ export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
 
     const cleanCpfCnpj = cpfCnpj.replace(/\D/g, "");
     if (!isValidCPF(cleanCpfCnpj) && !isValidCNPJ(cleanCpfCnpj)) {
-      alert("CPF ou CNPJ inválido ❌");
+      toast.error("CPF ou CNPJ inválido ❌");
       setLoading(false);
       return;
     }
 
-    const res = await fetch(`/api/clientes/${cliente.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome,
-        cpfCnpj,
-        email,
-        telefone,
-        endereco,
-        taxaAntecipacao: taxa1,
-        taxaBancaria: taxa2,
-        taxaServico: taxa3,
-        negativado,
-      }),
-    });
+    try {
+      const res = await fetch(`/api/clientes/${cliente.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome,
+          cpfCnpj,
+          email,
+          telefone,
+          endereco,
+          taxaAntecipacao: taxa1,
+          taxaBancaria: taxa2,
+          taxaServico: taxa3,
+          negativado,
+        }),
+      });
 
-    setLoading(false);
-
-    if (res.ok) {
-      alert("Cliente atualizado com sucesso ✅");
-      window.location.reload();
-    } else {
-      const data = await res.json();
-      alert(`Erro: ${data.error}`);
+      if (res.ok) {
+        toast.success("Cliente atualizado com sucesso ✅");
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        toast.error(`Erro ao atualizar: ${data.error}`);
+      }
+    } catch (error) {
+      toast.error("Erro interno ao atualizar cliente ❌");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -182,7 +188,14 @@ export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
           </div>
 
           <Button className="mt-2" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Salvando..." : "Salvar Alterações"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              "Salvar Alterações"
+            )}
           </Button>
         </div>
       </DialogContent>
