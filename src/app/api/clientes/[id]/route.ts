@@ -17,9 +17,9 @@ const clienteSchema = z.object({
 
 export async function PUT(
   req: Request,
-  context: { params: Record<string, string> }
+  { params }: { params: { id: string } }
 ) {
-  const id = (await context).params.id;
+  const id = params.id;
 
   if (!id) {
     return NextResponse.json(
@@ -67,9 +67,9 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id?: string } }
+  { params }: { params: { id: string } }
 ) {
-  const id = params?.id;
+  const id = params.id;
 
   if (!id) {
     return NextResponse.json(
