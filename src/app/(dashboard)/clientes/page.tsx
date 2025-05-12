@@ -1,4 +1,4 @@
-import { ClienteTable } from "@/components/clientes/ClienteTable";
+import { ClientesTable } from "@/components/clientes/ClienteTable";
 import { NovoClienteDialog } from "@/components/clientes/NovoClienteDialog";
 
 export default function ClientesPage() {
@@ -9,7 +9,7 @@ export default function ClientesPage() {
         <NovoClienteDialog />
       </div>
 
-      <ClienteTable />
+      <ClientesTable />
     </div>
   );
 }

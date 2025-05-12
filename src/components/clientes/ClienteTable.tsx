@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { EditarClienteDialog } from "./EditarClienteDialog";
+import { ExcluirClienteButton } from "./ExcluirClienteButton";
 
 type Cliente = {
   id: string;
@@ -9,79 +12,91 @@ type Cliente = {
   cpfCnpj: string;
   email?: string;
   telefone?: string;
-  taxa1: number;
-  taxa2: number;
-  taxa3: number;
+  endereco?: string;
+  taxaAntecipacao: number;
+  taxaBancaria: number;
+  taxaServico: number;
   negativado: boolean;
 };
 
-const mockClientes: Cliente[] = [
-  {
-    id: "1",
-    nome: "Maria Souza",
-    cpfCnpj: "123.456.789-00",
-    email: "maria@email.com",
-    telefone: "(11) 99999-0000",
-    taxa1: 2.5,
-    taxa2: 1.2,
-    taxa3: 0.8,
-    negativado: false,
-  },
-  {
-    id: "2",
-    nome: "João Silva",
-    cpfCnpj: "987.654.321-00",
-    email: "joao@email.com",
-    telefone: "(11) 98888-1111",
-    taxa1: 3.1,
-    taxa2: 1.0,
-    taxa3: 0.5,
-    negativado: true,
-  },
-];
+export function ClientesTable() {
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [filtro, setFiltro] = useState("");
 
-export function ClienteTable() {
-  const [clientes, setClientes] = useState<Cliente[]>(mockClientes);
-  const [busca, setBusca] = useState("");
+  useEffect(() => {
+    async function fetchClientes() {
+      const res = await fetch("/api/clientes");
+      const data = await res.json();
+      setClientes(data);
+    }
+
+    fetchClientes();
+  }, []);
 
   const clientesFiltrados = clientes.filter(
-    (c) =>
-      c.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      c.cpfCnpj.includes(busca)
+    (cliente) =>
+      cliente.nome.toLowerCase().includes(filtro.toLowerCase()) ||
+      cliente.cpfCnpj.replace(/\D/g, "").includes(filtro.replace(/\D/g, ""))
   );
 
   return (
-    <div className="bg-white shadow-md rounded-2xl p-6 mt-6">
+    <div className="mt-6 bg-white shadow-md rounded-2xl p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-zinc-800">Clientes</h2>
+        <h2 className="text-lg font-semibold text-zinc-800">
+          Clientes Cadastrados
+        </h2>
+
         <Input
           placeholder="Buscar por nome ou CPF/CNPJ"
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
           className="w-64"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
         />
       </div>
 
-      <table className="w-full text-sm">
-        <thead className="text-zinc-500 border-b">
-          <tr>
-            <th className="text-left p-2">Nome</th>
-            <th className="text-left p-2">CPF/CNPJ</th>
-            <th className="text-left p-2">Taxa 1</th>
-            <th className="text-left p-2">Negativado</th>
-          </tr>
-        </thead>
-        <tbody>
-          {clientesFiltrados.map((c) => (
-            <tr key={c.id} className="border-b last:border-none">
-              <td className="p-2">{c.nome}</td>
-              <td className="p-2">{c.cpfCnpj}</td>
-              <td className="p-2">{c.taxa1.toFixed(2)}%</td>
-              <td className="p-2">{c.negativado ? "Sim" : "Não"}</td>
+      <div className="overflow-auto">
+        <table className="w-full text-sm">
+          <thead className="text-zinc-500 border-b">
+            <tr>
+              <th className="text-left p-2">Nome</th>
+              <th className="text-left p-2">CPF/CNPJ</th>
+              <th className="text-left p-2">Taxa Antecipação</th>
+              <th className="text-left p-2">Taxa Bancária</th>
+              <th className="text-left p-2">Taxa Serviço</th>
+              <th className="text-left p-2">Status</th>
+              <th className="text-left p-2">Ações</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {clientesFiltrados.map((c) => (
+              <tr key={c.id} className="border-b last:border-none">
+                <td className="p-2">{c.nome}</td>
+                <td className="p-2">{c.cpfCnpj}</td>
+                <td className="p-2">{c.taxaAntecipacao.toFixed(2)}%</td>
+                <td className="p-2">{c.taxaBancaria.toFixed(2)}%</td>
+                <td className="p-2">{c.taxaServico.toFixed(2)}%</td>
+                <td className="p-2">
+                  {c.negativado ? (
+                    <Badge className="bg-red-500">Negativado ❌</Badge>
+                  ) : (
+                    <Badge className="bg-green-500">Regular ✅</Badge>
+                  )}
+                </td>
+                <td className="p-2">
+                  <EditarClienteDialog cliente={c} />
+                  <ExcluirClienteButton clienteId={c.id} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {clientesFiltrados.length === 0 && (
+          <div className="text-center text-sm text-zinc-500 mt-4">
+            Nenhum cliente encontrado.
+          </div>
+        )}
+      </div>
     </div>
   );
 }

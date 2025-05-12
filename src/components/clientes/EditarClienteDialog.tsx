@@ -18,22 +18,35 @@ import {
   formatCNPJ,
 } from "@brazilian-utils/brazilian-utils";
 
-export function NovoClienteDialog() {
-  const [nome, setNome] = useState("");
-  const [cpfCnpj, setCpfCnpj] = useState("");
-  const [email, setEmail] = useState("");
-  const [telefone, setTelefone] = useState("");
-  const [endereco, setEndereco] = useState("");
-  const [taxa1, setTaxa1] = useState(0);
-  const [taxa2, setTaxa2] = useState(0);
-  const [taxa3, setTaxa3] = useState(0);
-  const [negativado, setNegativado] = useState(false);
+type Cliente = {
+  id: string;
+  nome: string;
+  cpfCnpj: string;
+  email?: string;
+  telefone?: string;
+  endereco?: string;
+  taxaAntecipacao: number;
+  taxaBancaria: number;
+  taxaServico: number;
+  negativado: boolean;
+};
+
+export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
+  const [nome, setNome] = useState(cliente.nome);
+  const [cpfCnpj, setCpfCnpj] = useState(cliente.cpfCnpj);
+  const [email, setEmail] = useState(cliente.email || "");
+  const [telefone, setTelefone] = useState(cliente.telefone || "");
+  const [endereco, setEndereco] = useState(cliente.endereco || "");
+  const [taxa1, setTaxa1] = useState(cliente.taxaAntecipacao);
+  const [taxa2, setTaxa2] = useState(cliente.taxaBancaria);
+  const [taxa3, setTaxa3] = useState(cliente.taxaServico);
+  const [negativado, setNegativado] = useState(cliente.negativado);
   const [loading, setLoading] = useState(false);
 
   function handleCpfCnpjChange(value: string) {
-    const raw = value.replace(/\D/g, "").slice(0, 14); // Máximo 14 dígitos
-
+    const raw = value.replace(/\D/g, "").slice(0, 14);
     let formatted = raw;
+
     if (raw.length <= 11) {
       formatted = formatCPF(raw);
     } else {
@@ -53,8 +66,8 @@ export function NovoClienteDialog() {
       return;
     }
 
-    const res = await fetch("/api/clientes", {
-      method: "POST",
+    const res = await fetch(`/api/clientes/${cliente.id}`, {
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         nome,
@@ -72,7 +85,7 @@ export function NovoClienteDialog() {
     setLoading(false);
 
     if (res.ok) {
-      alert("Cliente cadastrado com sucesso ✅");
+      alert("Cliente atualizado com sucesso ✅");
       window.location.reload();
     } else {
       const data = await res.json();
@@ -83,12 +96,14 @@ export function NovoClienteDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>+ Novo Cliente</Button>
+        <Button variant="outline" size="sm">
+          Editar
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Novo Cliente</DialogTitle>
+          <DialogTitle>Editar Cliente</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -103,7 +118,6 @@ export function NovoClienteDialog() {
               value={cpfCnpj}
               maxLength={18}
               onChange={(e) => handleCpfCnpjChange(e.target.value)}
-              placeholder="CPF ou CNPJ do cliente"
             />
           </div>
 
@@ -158,15 +172,17 @@ export function NovoClienteDialog() {
           <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
-              id="negativado"
+              id={`negativado-${cliente.id}`}
               checked={negativado}
               onChange={() => setNegativado(!negativado)}
             />
-            <Label htmlFor="negativado">Cliente negativado?</Label>
+            <Label htmlFor={`negativado-${cliente.id}`}>
+              Cliente negativado?
+            </Label>
           </div>
 
           <Button className="mt-2" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Salvando..." : "Salvar Cliente"}
+            {loading ? "Salvando..." : "Salvar Alterações"}
           </Button>
         </div>
       </DialogContent>
