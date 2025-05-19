@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 // Mesmo schema usado no POST
 const clienteSchema = z.object({
@@ -15,11 +16,9 @@ const clienteSchema = z.object({
   negativado: z.boolean(),
 });
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const id = params.id;
+export async function PUT(req: NextRequest) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
 
   if (!id) {
     return NextResponse.json(
@@ -65,11 +64,9 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const id = params.id;
+export async function DELETE(req: NextRequest) {
+  const url = new URL(req.url);
+  const id = url.pathname.split("/").pop();
 
   if (!id) {
     return NextResponse.json(

@@ -47,7 +47,8 @@ export function LineChart() {
     scales: {
       y: {
         ticks: {
-          callback: (value: number) => `R$${value.toLocaleString("pt-BR")}`,
+          callback: (tickValue: string | number) =>
+            `R$${Number(tickValue).toLocaleString("pt-BR")}`,
         },
         grid: { drawBorder: false, color: "#F3F4F6" },
       },
