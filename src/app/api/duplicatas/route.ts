@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 
-// --- POST /api/duplicatas ---
 const schema = z.object({
   numero: z.string().min(1),
   valor: z.number(),
@@ -12,14 +11,16 @@ const schema = z.object({
   }),
   observacoes: z.string().optional(),
   clienteId: z.string(),
-  userId: z.string(), // vindo da sessão (temporariamente manual)
 });
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const parsed = schema.safeParse(body);
 
+  console.log("📥 Body recebido:", body);
+
+  const parsed = schema.safeParse(body);
   if (!parsed.success) {
+    console.error("❌ Erros de validação Zod:", parsed.error.errors);
     return NextResponse.json(
       { error: "Dados inválidos", issues: parsed.error.errors },
       { status: 400 }
@@ -33,8 +34,9 @@ export async function POST(req: Request) {
     vencimento,
     observacoes,
     clienteId,
-    userId,
   } = parsed.data;
+
+  const userId = "517a08fe-9c36-43b2-b8a9-3009142c1f1d";
 
   const duplicata = await prisma.duplicata.create({
     data: {
@@ -52,7 +54,6 @@ export async function POST(req: Request) {
   return NextResponse.json(duplicata, { status: 201 });
 }
 
-// --- GET /api/duplicatas ---
 export async function GET() {
   const duplicatas = await prisma.duplicata.findMany({
     orderBy: { emissao: "desc" },
