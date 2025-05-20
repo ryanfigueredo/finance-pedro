@@ -18,28 +18,24 @@ import {
   formatCNPJ,
 } from "@brazilian-utils/brazilian-utils";
 
+// ... imports mantidos
+
 export function NovoClienteDialog() {
   const [nome, setNome] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
-  const [taxa1, setTaxa1] = useState(0);
-  const [taxa2, setTaxa2] = useState(0);
-  const [taxa3, setTaxa3] = useState(0);
+  const [taxaAntecipacao, setTaxaAntecipacao] = useState(0);
+  const [taxaBancaria, setTaxaBancaria] = useState(0);
+  const [taxaServico, setTaxaServico] = useState(0);
   const [negativado, setNegativado] = useState(false);
   const [loading, setLoading] = useState(false);
 
   function handleCpfCnpjChange(value: string) {
-    const raw = value.replace(/\D/g, "").slice(0, 14); // Máximo 14 dígitos
-
+    const raw = value.replace(/\D/g, "").slice(0, 14);
     let formatted = raw;
-    if (raw.length <= 11) {
-      formatted = formatCPF(raw);
-    } else {
-      formatted = formatCNPJ(raw);
-    }
-
+    formatted = raw.length <= 11 ? formatCPF(raw) : formatCNPJ(raw);
     setCpfCnpj(formatted);
   }
 
@@ -62,9 +58,9 @@ export function NovoClienteDialog() {
         email,
         telefone,
         endereco,
-        taxaAntecipacao: taxa1,
-        taxaBancaria: taxa2,
-        taxaServico: taxa3,
+        taxaAntecipacao,
+        taxaBancaria,
+        taxaServico,
         negativado,
       }),
     });
@@ -103,7 +99,6 @@ export function NovoClienteDialog() {
               value={cpfCnpj}
               maxLength={18}
               onChange={(e) => handleCpfCnpjChange(e.target.value)}
-              placeholder="CPF ou CNPJ do cliente"
             />
           </div>
 
@@ -133,24 +128,24 @@ export function NovoClienteDialog() {
               <Label>Taxa Antecipação (%)</Label>
               <Input
                 type="number"
-                value={taxa1}
-                onChange={(e) => setTaxa1(parseFloat(e.target.value))}
+                value={taxaAntecipacao}
+                onChange={(e) => setTaxaAntecipacao(parseFloat(e.target.value))}
               />
             </div>
             <div>
               <Label>Taxa Bancária (%)</Label>
               <Input
                 type="number"
-                value={taxa2}
-                onChange={(e) => setTaxa2(parseFloat(e.target.value))}
+                value={taxaBancaria}
+                onChange={(e) => setTaxaBancaria(parseFloat(e.target.value))}
               />
             </div>
             <div>
               <Label>Taxa Serviço (%)</Label>
               <Input
                 type="number"
-                value={taxa3}
-                onChange={(e) => setTaxa3(parseFloat(e.target.value))}
+                value={taxaServico}
+                onChange={(e) => setTaxaServico(parseFloat(e.target.value))}
               />
             </div>
           </div>

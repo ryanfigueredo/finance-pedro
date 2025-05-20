@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { EditarClienteDialog } from "./EditarClienteDialog";
+import { ClienteDialog } from "./ClienteDialog";
 import { ExcluirClienteButton } from "./ExcluirClienteButton";
 
 type Cliente = {
@@ -83,7 +83,7 @@ export function ClientesTable() {
                   )}
                 </td>
                 <td className="p-2">
-                  <EditarClienteDialog cliente={c} />
+                  <ClienteDialog cliente={c} />
                   <ExcluirClienteButton clienteId={c.id} />
                 </td>
               </tr>

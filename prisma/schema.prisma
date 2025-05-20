@@ -42,6 +42,8 @@ model Cliente {
   duplicatas Duplicata[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+
+  Bordero Bordero[]
 }
 
 model Duplicata {
@@ -54,17 +56,21 @@ model Duplicata {
   status           StatusDuplicata @default(PENDENTE)
   observacoes      String?
 
-  userId    String
-  clienteId String
+  userId      String
+  clienteId   String
+  borderoId   String?  
 
-  user         User          @relation(fields: [userId], references: [id])
-  cliente      Cliente       @relation(fields: [clienteId], references: [id])
-  arquivos     Arquivo[]
+  user        User      @relation(fields: [userId], references: [id])
+  cliente     Cliente   @relation(fields: [clienteId], references: [id])
+  bordero     Bordero?  @relation(fields: [borderoId], references: [id])
+  arquivos    Arquivo[]
   antecipacoes Antecipacao[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
 
 model Arquivo {
   id          String    @id @default(uuid())
@@ -105,3 +111,16 @@ enum StatusDuplicata {
   ANTECIPADA
   CANCELADA
 }
+
+model Bordero {
+  id           String     @id @default(uuid())
+  clienteId    String
+  cliente      Cliente    @relation(fields: [clienteId], references: [id])
+  dataGeracao  DateTime   @default(now())
+  valorBruto   Float
+  totalTaxas   Float
+  valorLiquido Float
+
+  duplicatas   Duplicata[] 
+}
+

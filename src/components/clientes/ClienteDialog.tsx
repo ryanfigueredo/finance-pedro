@@ -10,13 +10,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import {
   isValidCPF,
   isValidCNPJ,
   formatCPF,
   formatCNPJ,
 } from "@brazilian-utils/brazilian-utils";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
@@ -33,24 +33,25 @@ type Cliente = {
   negativado: boolean;
 };
 
-export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
-  const [nome, setNome] = useState(cliente.nome);
-  const [cpfCnpj, setCpfCnpj] = useState(cliente.cpfCnpj);
-  const [email, setEmail] = useState(cliente.email || "");
-  const [telefone, setTelefone] = useState(cliente.telefone || "");
-  const [endereco, setEndereco] = useState(cliente.endereco || "");
+export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
+  const isEditando = !!cliente;
+
+  const [nome, setNome] = useState(cliente?.nome ?? "");
+  const [cpfCnpj, setCpfCnpj] = useState(cliente?.cpfCnpj ?? "");
+  const [email, setEmail] = useState(cliente?.email ?? "");
+  const [telefone, setTelefone] = useState(cliente?.telefone ?? "");
+  const [endereco, setEndereco] = useState(cliente?.endereco ?? "");
   const [taxaAntecipacao, setTaxaAntecipacao] = useState(
-    cliente.taxaAntecipacao
+    cliente?.taxaAntecipacao ?? 0
   );
-  const [taxaBancaria, setTaxaBancaria] = useState(cliente.taxaBancaria);
-  const [taxaServico, setTaxaServico] = useState(cliente.taxaServico);
-  const [negativado, setNegativado] = useState(cliente.negativado);
+  const [taxaBancaria, setTaxaBancaria] = useState(cliente?.taxaBancaria ?? 0);
+  const [taxaServico, setTaxaServico] = useState(cliente?.taxaServico ?? 0);
+  const [negativado, setNegativado] = useState(cliente?.negativado ?? false);
   const [loading, setLoading] = useState(false);
 
   function handleCpfCnpjChange(value: string) {
     const raw = value.replace(/\D/g, "").slice(0, 14);
     let formatted = raw;
-
     formatted = raw.length <= 11 ? formatCPF(raw) : formatCNPJ(raw);
     setCpfCnpj(formatted);
   }
@@ -65,48 +66,58 @@ export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
       return;
     }
 
-    try {
-      const res = await fetch(`/api/clientes/${cliente.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome,
-          cpfCnpj,
-          email,
-          telefone,
-          endereco,
-          taxaAntecipacao,
-          taxaBancaria,
-          taxaServico,
-          negativado,
-        }),
-      });
+    const body = {
+      nome,
+      cpfCnpj,
+      email,
+      telefone,
+      endereco,
+      taxaAntecipacao,
+      taxaBancaria,
+      taxaServico,
+      negativado,
+    };
 
-      if (res.ok) {
-        toast.success("Cliente atualizado com sucesso ✅");
-        window.location.reload();
-      } else {
-        const data = await res.json();
-        toast.error(`Erro ao atualizar: ${data.error}`);
+    const res = await fetch(
+      isEditando ? `/api/clientes/${cliente?.id}` : "/api/clientes",
+      {
+        method: isEditando ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       }
-    } catch (error) {
-      toast.error("Erro interno ao atualizar cliente ❌");
-    } finally {
-      setLoading(false);
+    );
+
+    if (res.ok) {
+      toast.success(
+        isEditando
+          ? "Cliente atualizado com sucesso ✅"
+          : "Cliente cadastrado com sucesso ✅"
+      );
+      window.location.reload();
+    } else {
+      const data = await res.json();
+      toast.error(`Erro: ${data.error}`);
     }
+
+    setLoading(false);
   }
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Editar
+        <Button
+          variant={isEditando ? "outline" : "default"}
+          size={isEditando ? "sm" : "default"}
+        >
+          {isEditando ? "Editar" : "+ Novo Cliente"}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Editar Cliente</DialogTitle>
+          <DialogTitle>
+            {isEditando ? "Editar Cliente" : "Novo Cliente"}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -175,11 +186,11 @@ export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
           <div className="flex items-center gap-2 mt-2">
             <input
               type="checkbox"
-              id={`negativado-${cliente.id}`}
+              id={`negativado-${cliente?.id ?? "novo"}`}
               checked={negativado}
               onChange={() => setNegativado(!negativado)}
             />
-            <Label htmlFor={`negativado-${cliente.id}`}>
+            <Label htmlFor={`negativado-${cliente?.id ?? "novo"}`}>
               Cliente negativado?
             </Label>
           </div>
@@ -190,8 +201,10 @@ export function EditarClienteDialog({ cliente }: { cliente: Cliente }) {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Salvando...
               </>
-            ) : (
+            ) : isEditando ? (
               "Salvar Alterações"
+            ) : (
+              "Salvar Cliente"
             )}
           </Button>
         </div>

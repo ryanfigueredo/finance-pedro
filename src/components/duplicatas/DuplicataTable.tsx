@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { AnteciparDuplicataDialog } from "./AnteciparDuplicataDialog";
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ModalResumoBordero } from "@/components/duplicatas/ModalResumoBordero";
 
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
@@ -28,7 +30,12 @@ interface Duplicata {
 
 export function DuplicataTable() {
   const [duplicatas, setDuplicatas] = useState<Duplicata[]>([]);
+  const [duplicatasSelecionadas, setDuplicatasSelecionadas] = useState<
+    string[]
+  >([]);
+  const [selecionarTodas, setSelecionarTodas] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState("TODOS");
+  const [mostrarResumo, setMostrarResumo] = useState(false);
 
   useEffect(() => {
     async function fetchDuplicatas() {
@@ -44,6 +51,41 @@ export function DuplicataTable() {
     (d) => filtroStatus === "TODOS" || d.status === filtroStatus
   );
 
+  const toggleSelecionar = (id: string) => {
+    setDuplicatasSelecionadas((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelecionarTodas = () => {
+    if (selecionarTodas) {
+      setDuplicatasSelecionadas([]);
+    } else {
+      const idsPendentes = duplicatasFiltradas
+        .filter((d) => d.status === "PENDENTE")
+        .map((d) => d.id);
+      setDuplicatasSelecionadas(idsPendentes);
+    }
+    setSelecionarTodas(!selecionarTodas);
+  };
+
+  const handleDescontar = () => {
+    if (duplicatasSelecionadas.length === 0) {
+      alert("Selecione pelo menos uma duplicata pendente.");
+      return;
+    }
+    setMostrarResumo(true);
+  };
+
+  const duplicatasSelecionadasData = duplicatas
+    .filter((d) => duplicatasSelecionadas.includes(d.id))
+    .map((d) => ({
+      id: d.id,
+      numero: d.numero,
+      valor: d.valor,
+      valorComDesconto: d.valor * 0.94, // simula 6% de desconto
+    }));
+
   return (
     <div className="bg-white shadow-md rounded-2xl p-6 mt-6">
       <div className="flex justify-between items-center mb-4">
@@ -51,24 +93,37 @@ export function DuplicataTable() {
           Duplicatas Emitidas
         </h2>
 
-        <Select onValueChange={setFiltroStatus} defaultValue="TODOS">
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Filtrar por status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="TODOS">Todos</SelectItem>
-            <SelectItem value="PENDENTE">Pendente</SelectItem>
-            <SelectItem value="ANTECIPADA">Antecipada</SelectItem>
-            <SelectItem value="PAGA">Paga</SelectItem>
-            <SelectItem value="CANCELADA">Cancelada</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select onValueChange={setFiltroStatus} defaultValue="TODOS">
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Filtrar por status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TODOS">Todos</SelectItem>
+              <SelectItem value="PENDENTE">Pendente</SelectItem>
+              <SelectItem value="ANTECIPADA">Antecipada</SelectItem>
+              <SelectItem value="PAGA">Paga</SelectItem>
+              <SelectItem value="CANCELADA">Cancelada</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={handleDescontar}>
+            Descontar duplicatas selecionadas
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-auto">
         <table className="w-full text-sm">
           <thead className="text-zinc-500 border-b">
             <tr>
+              <th className="p-2">
+                <input
+                  type="checkbox"
+                  checked={selecionarTodas}
+                  onChange={toggleSelecionarTodas}
+                />
+              </th>
               <th className="text-left p-2">Número</th>
               <th className="text-left p-2">Cliente</th>
               <th className="text-left p-2">Valor</th>
@@ -80,6 +135,14 @@ export function DuplicataTable() {
           <tbody>
             {duplicatasFiltradas.map((d) => (
               <tr key={d.id} className="border-b last:border-none">
+                <td className="p-2">
+                  <input
+                    type="checkbox"
+                    disabled={d.status !== "PENDENTE"}
+                    checked={duplicatasSelecionadas.includes(d.id)}
+                    onChange={() => toggleSelecionar(d.id)}
+                  />
+                </td>
                 <td className="p-2">{d.numero}</td>
                 <td className="p-2">{d.cliente.nome}</td>
                 <td className="p-2">R$ {d.valor.toLocaleString("pt-BR")}</td>
@@ -110,6 +173,13 @@ export function DuplicataTable() {
           </tbody>
         </table>
       </div>
+
+      {mostrarResumo && (
+        <ModalResumoBordero
+          duplicatas={duplicatasSelecionadasData}
+          onClose={() => setMostrarResumo(false)}
+        />
+      )}
     </div>
   );
 }
