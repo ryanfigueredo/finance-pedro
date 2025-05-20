@@ -40,28 +40,44 @@ export function NovaDuplicataDialog() {
   async function handleSubmit() {
     setLoading(true);
 
-    const res = await fetch("/api/duplicatas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        numero,
-        valor,
-        valorComDesconto,
-        vencimento,
-        observacoes,
-        clienteId,
-        userId: (session?.user as any)?.id,
-      }),
-    });
+    try {
+      const res = await fetch("/api/duplicatas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numero,
+          valor,
+          valorComDesconto,
+          vencimento,
+          observacoes,
+          clienteId,
+          userId: (session?.user as any)?.id,
+        }),
+      });
 
-    setLoading(false);
+      setLoading(false);
 
-    if (res.ok) {
-      alert("Duplicata emitida com sucesso ✅");
-      window.location.reload();
-    } else {
-      const data = await res.json();
-      alert(`Erro ao emitir duplicata: ${data.error}`);
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (err) {
+        console.warn("Resposta sem JSON:", err);
+      }
+
+      if (res.ok) {
+        alert("Duplicata emitida com sucesso ✅");
+        window.location.reload();
+      } else {
+        alert(
+          `Erro ao emitir duplicata: ${
+            (data as any).error ?? "Erro desconhecido"
+          }`
+        );
+      }
+    } catch (error) {
+      setLoading(false);
+      alert("Erro inesperado ao emitir duplicata.");
+      console.error(error);
     }
   }
 

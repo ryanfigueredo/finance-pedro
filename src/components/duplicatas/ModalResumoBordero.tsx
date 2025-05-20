@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
 }
 
-export function ModalResumoBordero({ duplicatas }: Props) {
+export function ModalResumoBordero({ duplicatas, onClose }: Props) {
   const [open, setOpen] = useState(false);
 
   const totalBruto = duplicatas.reduce((acc, d) => acc + d.valor, 0);
@@ -32,10 +32,28 @@ export function ModalResumoBordero({ duplicatas }: Props) {
   );
   const totalDescontos = totalBruto - totalLiquido;
 
-  const handleGerarContrato = () => {
-    console.log("📝 Gerando contrato para duplicatas:", duplicatas);
-    alert("Contrato gerado com sucesso (simulado)");
-    setOpen(false);
+  const handleGerarContrato = async () => {
+    try {
+      const res = await fetch("/api/bordero", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ duplicataIds: duplicatas.map((d) => d.id) }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error ?? "Erro ao gerar contrato.");
+        return;
+      }
+
+      alert("✅ Contrato gerado com sucesso!");
+      setOpen(false);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Erro inesperado ao gerar contrato.");
+    }
   };
 
   return (
