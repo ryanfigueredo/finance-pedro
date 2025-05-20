@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { AnteciparDuplicataDialog } from "./AnteciparDuplicataDialog";
@@ -13,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ModalResumoBordero } from "@/components/duplicatas/ModalResumoBordero";
+import { useSearchParams } from "next/navigation";
 
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
@@ -37,6 +36,10 @@ export function DuplicataTable() {
   const [filtroStatus, setFiltroStatus] = useState("TODOS");
   const [mostrarResumo, setMostrarResumo] = useState(false);
 
+  const searchParams = useSearchParams();
+  const statusFiltrado = searchParams.get("status");
+  const filtroFinal = statusFiltrado ?? filtroStatus;
+
   useEffect(() => {
     async function fetchDuplicatas() {
       const res = await fetch("/api/duplicatas");
@@ -48,7 +51,7 @@ export function DuplicataTable() {
   }, []);
 
   const duplicatasFiltradas = duplicatas.filter(
-    (d) => filtroStatus === "TODOS" || d.status === filtroStatus
+    (d) => filtroFinal === "TODOS" || d.status === filtroFinal
   );
 
   const toggleSelecionar = (id: string) => {
@@ -94,7 +97,7 @@ export function DuplicataTable() {
         </h2>
 
         <div className="flex items-center gap-2">
-          <Select onValueChange={setFiltroStatus} defaultValue="TODOS">
+          <Select onValueChange={setFiltroStatus} defaultValue={filtroFinal}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
@@ -106,10 +109,6 @@ export function DuplicataTable() {
               <SelectItem value="CANCELADA">Cancelada</SelectItem>
             </SelectContent>
           </Select>
-
-          <Button onClick={handleDescontar}>
-            Descontar duplicatas selecionadas
-          </Button>
         </div>
       </div>
 
@@ -173,13 +172,6 @@ export function DuplicataTable() {
           </tbody>
         </table>
       </div>
-
-      {mostrarResumo && (
-        <ModalResumoBordero
-          duplicatas={duplicatasSelecionadasData}
-          onClose={() => setMostrarResumo(false)}
-        />
-      )}
     </div>
   );
 }

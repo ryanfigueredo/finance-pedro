@@ -1,6 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export async function GET() {
+  const borderos = await prisma.bordero.findMany({
+    orderBy: { dataGeracao: "desc" },
+    include: { cliente: true },
+  });
+
+  return NextResponse.json(borderos);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
