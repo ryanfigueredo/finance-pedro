@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
 import {
   Select,
   SelectTrigger,
@@ -19,26 +18,31 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { getToken } from "next-auth/jwt";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export function NovaDuplicataDialog() {
   const [numero, setNumero] = useState("");
   const [valor, setValor] = useState(10000);
-  const [desconto, setDesconto] = useState(0);
   const [vencimento, setVencimento] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  const [clientes, setClientes] = useState<any[]>([]);
   const [clienteId, setClienteId] = useState("");
+  const [clienteSelecionado, setClienteSelecionado] = useState<any>(null);
+  const [resultado, setResultado] = useState<number | null>(null);
 
-  const { data: session } = useSession(); // ✅ esta linha deve estar aqui!
-
-  const valorComDesconto = valor - valor * (desconto / 100);
+  const { data: session } = useSession();
 
   async function handleSubmit() {
     setLoading(true);
+
+    if (!numero || !clienteId || !valor || !vencimento) {
+      alert("Preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/duplicatas", {
@@ -47,31 +51,23 @@ export function NovaDuplicataDialog() {
         body: JSON.stringify({
           numero,
           valor,
-          valorComDesconto,
           vencimento,
           observacoes,
           clienteId,
-          userId: (session?.user as any)?.id,
+          userId: "f38f31fd-0974-4475-9aa3-4aab0c6d6a70", // mockado temporariamente
         }),
       });
 
       setLoading(false);
 
-      let data = {};
-      try {
-        data = await res.json();
-      } catch (err) {
-        console.warn("Resposta sem JSON:", err);
-      }
+      const data = await res.json();
 
       if (res.ok) {
         alert("Duplicata emitida com sucesso ✅");
         window.location.reload();
       } else {
         alert(
-          `Erro ao emitir duplicata: ${
-            (data as any).error ?? "Erro desconhecido"
-          }`
+          `Erro ao emitir duplicata: ${data?.error ?? "Erro desconhecido"}`
         );
       }
     } catch (error) {
@@ -83,13 +79,45 @@ export function NovaDuplicataDialog() {
 
   useEffect(() => {
     async function fetchClientes() {
-      const res = await fetch("/api/clientes");
-      const data = await res.json();
-      setClientes(data);
+      try {
+        const res = await fetch("/api/clientes");
+        const data = await res.json();
+        setClientes(data);
+      } catch (err) {
+        console.error("Erro ao buscar clientes:", err);
+        setClientes([]);
+      }
     }
 
     fetchClientes();
   }, []);
+
+  useEffect(() => {
+    if (!clienteSelecionado || !valor || !vencimento) {
+      setResultado(null);
+      return;
+    }
+
+    const venc = new Date(vencimento);
+    const hoje = new Date();
+    const dias = Math.max(
+      1,
+      Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
+    );
+
+    const taxaComposta =
+      Math.pow(1 + clienteSelecionado.taxaAntecipacao / 100, dias) - 1;
+
+    const totalTaxasPercentuais =
+      taxaComposta + (clienteSelecionado.taxaServico ?? 0) / 100;
+
+    const totalTaxasFixas =
+      (clienteSelecionado.taxaBancaria ?? 0) +
+      (clienteSelecionado.taxaAdicional ?? 0);
+
+    const r = valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
+    setResultado(Number(r.toFixed(2)));
+  }, [clienteSelecionado, valor, vencimento]);
 
   return (
     <Dialog>
@@ -114,7 +142,13 @@ export function NovaDuplicataDialog() {
 
           <div>
             <Label>Cliente</Label>
-            <Select onValueChange={(value) => setClienteId(value)}>
+            <Select
+              onValueChange={(value) => {
+                setClienteId(value);
+                const c = clientes.find((cli) => cli.id === value);
+                setClienteSelecionado(c ?? null);
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um cliente" />
               </SelectTrigger>
@@ -138,25 +172,18 @@ export function NovaDuplicataDialog() {
           </div>
 
           <div>
-            <Label>Desconto (%)</Label>
-            <Input
-              type="number"
-              value={desconto}
-              onChange={(e) => setDesconto(Number(e.target.value))}
-            />
-            <p className="text-sm text-zinc-500 mt-1">
-              Valor com desconto:{" "}
-              <strong>R$ {valorComDesconto.toFixed(2)}</strong>
-            </p>
-          </div>
-
-          <div>
             <Label>Data de Vencimento</Label>
             <Input
               type="date"
               value={vencimento}
               onChange={(e) => setVencimento(e.target.value)}
             />
+            {resultado !== null && (
+              <p className="text-sm text-green-600 mt-1">
+                Resultado estimado:{" "}
+                <strong>R$ {resultado.toLocaleString("pt-BR")}</strong>
+              </p>
+            )}
           </div>
 
           <div>

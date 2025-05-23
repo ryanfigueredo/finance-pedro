@@ -15,7 +15,6 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   const body = await req.json();
-
   console.log("📥 Body recebido:", body);
 
   const parsed = schema.safeParse(body);
@@ -27,27 +26,48 @@ export async function POST(req: Request) {
     );
   }
 
-  const {
-    numero,
-    valor,
-    valorComDesconto,
-    vencimento,
-    observacoes,
-    clienteId,
-  } = parsed.data;
+  const { numero, valor, vencimento, observacoes, clienteId } = parsed.data;
 
-  const userId = "517a08fe-9c36-43b2-b8a9-3009142c1f1d";
+  // ✅ ID mockado temporário até NextAuth estar funcionando
+  const userId = "f38f31fd-0974-4475-9aa3-4aab0c6d6a70";
+
+  const cliente = await prisma.cliente.findUnique({
+    where: { id: clienteId },
+  });
+
+  if (!cliente) {
+    return NextResponse.json(
+      { error: "Cliente não encontrado" },
+      { status: 404 }
+    );
+  }
+
+  // 🧠 Cálculo de taxas
+  const hoje = new Date();
+  const venc = new Date(vencimento);
+  const dias = Math.max(
+    1,
+    Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
+  );
+
+  const taxaComposta = Math.pow(1 + cliente.taxaAntecipacao / 100, dias) - 1;
+  const totalTaxasPercentuais = taxaComposta + (cliente.taxaServico ?? 0) / 100;
+  const totalTaxasFixas =
+    (cliente.taxaAdicional ?? 0) + (cliente.taxaBancaria ?? 0);
+
+  const resultado = valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
 
   const duplicata = await prisma.duplicata.create({
     data: {
       numero,
       valor,
-      valorComDesconto,
-      vencimento: new Date(vencimento),
+      vencimento: venc,
       observacoes,
       status: "PENDENTE",
       clienteId,
       userId,
+      valorComDesconto: valor - valor * totalTaxasPercentuais,
+      resultado: parseFloat(resultado.toFixed(2)),
     },
   });
 

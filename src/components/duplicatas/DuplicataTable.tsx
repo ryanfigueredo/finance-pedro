@@ -22,6 +22,7 @@ interface Duplicata {
   valor: number;
   status: Status;
   vencimento: string;
+  resultado?: number;
   cliente: {
     nome: string;
   };
@@ -128,6 +129,7 @@ export function DuplicataTable() {
               <th className="text-left p-2">Valor</th>
               <th className="text-left p-2">Status</th>
               <th className="text-left p-2">Vencimento</th>
+              <th className="text-left p-2">Resultado</th>
               <th className="text-left p-2">Ações</th>
             </tr>
           </thead>
@@ -154,6 +156,9 @@ export function DuplicataTable() {
                   {format(new Date(d.vencimento), "dd/MM/yyyy", {
                     locale: ptBR,
                   })}
+                </td>
+                <td className="p-2 text-right">
+                  {d.resultado ? `R$ ${d.resultado.toFixed(2)}` : "-"}
                 </td>
                 <td className="p-2">
                   {d.status === "PENDENTE" ? (

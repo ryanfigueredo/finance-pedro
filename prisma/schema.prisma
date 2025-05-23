@@ -57,6 +57,7 @@ model Duplicata {
   emissao          DateTime        @default(now())
   status           StatusDuplicata @default(PENDENTE)
   observacoes      String?
+  resultado        Float? 
 
   userId      String
   clienteId   String

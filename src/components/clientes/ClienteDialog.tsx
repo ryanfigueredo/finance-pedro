@@ -72,10 +72,6 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
       return;
     }
 
-    const [taxaAdicional, setTaxaAdicional] = useState(
-      cliente?.taxaAdicional ?? 0
-    );
-
     const body = {
       nome,
       cpfCnpj,

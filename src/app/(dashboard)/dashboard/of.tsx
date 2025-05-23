@@ -1,4 +1,3 @@
-import { prisma } from "@/lib/prisma";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import {
   FileText,
@@ -6,23 +5,19 @@ import {
   TrendingUp,
   BadgeDollarSign,
 } from "lucide-react";
-import Link from "next/link";
 import { LineChart } from "@/components/dashboard/LineChart";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
 
 export default async function DashboardPage() {
-  const hoje = new Date();
-
-  const [total, vencidas, pagas, pendentes, borderos] = await Promise.all([
+  const [total, vencidas, pagas, pendentes] = await Promise.all([
     prisma.duplicata.count(),
     prisma.duplicata.count({
-      where: {
-        vencimento: { lt: hoje },
-        status: "PENDENTE",
-      },
+      where: { vencimento: { lt: new Date() }, status: "PENDENTE" },
     }),
     prisma.duplicata.count({ where: { status: "PAGA" } }),
     prisma.duplicata.count({ where: { status: "PENDENTE" } }),
-    prisma.bordero.count(),
   ]);
 
   return (
@@ -63,8 +58,8 @@ export default async function DashboardPage() {
         <LineChart />
       </div>
 
-      <Link href="/borderos" className="col-span-full sm:col-span-2">
-        <KpiCard title="Borderôs Gerados" value={borderos.toString()} />
+      <Link href="/borderos">
+        <KpiCard title="Borderôs Gerados" value="↗ Clique para ver" />
       </Link>
     </div>
   );
