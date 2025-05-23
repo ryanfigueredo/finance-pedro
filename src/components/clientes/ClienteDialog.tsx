@@ -19,6 +19,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { NumericFormat } from "react-number-format";
 
 type Cliente = {
   id: string;
@@ -171,6 +172,8 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
               <Label>Taxa de Antecipação (%)</Label>
               <Input
                 type="number"
+                min={0}
+                max={100}
                 value={taxaAntecipacao}
                 onChange={(e) => setTaxaAntecipacao(parseFloat(e.target.value))}
               />
@@ -179,24 +182,52 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
               <Label>Taxa de Serviço (%)</Label>
               <Input
                 type="number"
+                min={0}
+                max={100}
                 value={taxaServico}
                 onChange={(e) => setTaxaServico(parseFloat(e.target.value))}
               />
             </div>
             <div>
               <Label>Taxa Bancária (R$)</Label>
-              <Input
+              <NumericFormat
+                value={taxaBancaria}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                allowNegative={false}
+                decimalScale={2}
+                fixedDecimalScale
+                onValueChange={(values) =>
+                  setTaxaBancaria(values.floatValue ?? 0)
+                }
+                className="input"
+              />
+              {/* <Input
                 type="number"
                 value={taxaBancaria}
                 onChange={(e) => setTaxaBancaria(parseFloat(e.target.value))}
-              />
+              /> */}
             </div>
             <div>
               <Label>Taxa Adicional (R$)</Label>
-              <Input
+              {/* <Input
                 type="number"
                 value={taxaAdicional}
                 onChange={(e) => setTaxaAdicional(parseFloat(e.target.value))}
+              /> */}
+              <NumericFormat
+                value={taxaAdicional}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="R$ "
+                allowNegative={false}
+                decimalScale={2}
+                fixedDecimalScale
+                onValueChange={(values) =>
+                  setTaxaAdicional(values.floatValue ?? 0)
+                }
+                className="input"
               />
             </div>
           </div>
