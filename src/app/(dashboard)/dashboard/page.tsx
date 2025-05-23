@@ -3,8 +3,18 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { KpiCard } from "@/components/dashboard/KpiCard";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import {
+  BadgeDollarSign,
+  FileText,
+  LineChart,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 
-export default function Dashboard() {
+export default async function Dashboard() {
   const movimentacoes = [
     {
       dataPrevista: "2024-05-01",
@@ -91,6 +101,15 @@ export default function Dashboard() {
     .filter((m) => m.valor < 0)
     .reduce((acc, m) => acc + m.valor, 0);
   const saldo = entradas + saidas;
+
+  const [total, vencidas, pagas, pendentes] = await Promise.all([
+    prisma.duplicata.count(),
+    prisma.duplicata.count({
+      where: { vencimento: { lt: new Date() }, status: "PENDENTE" },
+    }),
+    prisma.duplicata.count({ where: { status: "PAGA" } }),
+    prisma.duplicata.count({ where: { status: "PENDENTE" } }),
+  ]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 auto-rows-max gap-4">
@@ -223,6 +242,48 @@ export default function Dashboard() {
             </ul>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+        <Link href="/duplicatas">
+          <KpiCard
+            title="Duplicatas Digitadas"
+            value={total.toString()}
+            icon={<FileText />}
+          />
+        </Link>
+
+        <Link href="/duplicatas?status=PENDENTE">
+          <KpiCard
+            title="Pendentes"
+            value={pendentes.toString()}
+            icon={<TrendingUp />}
+          />
+        </Link>
+
+        <Link href="/duplicatas?status=PAGA">
+          <KpiCard
+            title="Liquidadas"
+            value={pagas.toString()}
+            icon={<BadgeDollarSign />}
+          />
+        </Link>
+
+        <Link href="/duplicatas?status=VENCIDA">
+          <KpiCard
+            title="Vencidas"
+            value={vencidas.toString()}
+            icon={<TrendingDown />}
+          />
+        </Link>
+
+        <div className="col-span-full">
+          <LineChart />
+        </div>
+
+        <Link href="/borderos">
+          <KpiCard title="Borderôs Gerados" value="↗ Clique para ver" />
+        </Link>
       </div>
     </div>
   );
