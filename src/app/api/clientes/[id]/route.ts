@@ -3,7 +3,6 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-// Mesmo schema usado no POST
 const clienteSchema = z.object({
   nome: z.string().min(2),
   cpfCnpj: z.string().min(11),
@@ -11,8 +10,9 @@ const clienteSchema = z.object({
   telefone: z.string().optional(),
   endereco: z.string().optional(),
   taxaAntecipacao: z.number().min(0).max(100),
-  taxaBancaria: z.number().min(0).max(100),
+  taxaBancaria: z.number().min(0),
   taxaServico: z.number().min(0).max(100),
+  taxaAdicional: z.number().min(0).optional().default(0),
   negativado: z.boolean(),
 });
 
@@ -51,6 +51,7 @@ export async function PUT(req: NextRequest) {
         taxaAntecipacao: data.taxaAntecipacao,
         taxaBancaria: data.taxaBancaria,
         taxaServico: data.taxaServico,
+        taxaAdicional: data.taxaAdicional ?? 0,
         taxaNegativacao: data.negativado ? 3.5 : 0,
       },
     });

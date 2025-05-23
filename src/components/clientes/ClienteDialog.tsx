@@ -30,6 +30,7 @@ type Cliente = {
   taxaAntecipacao: number;
   taxaBancaria: number;
   taxaServico: number;
+  taxaAdicional: number;
   negativado: boolean;
 };
 
@@ -44,8 +45,12 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
   const [taxaAntecipacao, setTaxaAntecipacao] = useState(
     cliente?.taxaAntecipacao ?? 0
   );
+
   const [taxaBancaria, setTaxaBancaria] = useState(cliente?.taxaBancaria ?? 0);
   const [taxaServico, setTaxaServico] = useState(cliente?.taxaServico ?? 0);
+  const [taxaAdicional, setTaxaAdicional] = useState(
+    cliente?.taxaAdicional ?? 0
+  );
   const [negativado, setNegativado] = useState(cliente?.negativado ?? false);
   const [loading, setLoading] = useState(false);
 
@@ -66,6 +71,10 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
       return;
     }
 
+    const [taxaAdicional, setTaxaAdicional] = useState(
+      cliente?.taxaAdicional ?? 0
+    );
+
     const body = {
       nome,
       cpfCnpj,
@@ -75,6 +84,7 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
       taxaAntecipacao,
       taxaBancaria,
       taxaServico,
+      taxaAdicional,
       negativado,
     };
 
@@ -156,9 +166,9 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Taxa Antecipação (%)</Label>
+              <Label>Taxa de Antecipação (%)</Label>
               <Input
                 type="number"
                 value={taxaAntecipacao}
@@ -166,7 +176,15 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
               />
             </div>
             <div>
-              <Label>Taxa Bancária (%)</Label>
+              <Label>Taxa de Serviço (%)</Label>
+              <Input
+                type="number"
+                value={taxaServico}
+                onChange={(e) => setTaxaServico(parseFloat(e.target.value))}
+              />
+            </div>
+            <div>
+              <Label>Taxa Bancária (R$)</Label>
               <Input
                 type="number"
                 value={taxaBancaria}
@@ -174,11 +192,11 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
               />
             </div>
             <div>
-              <Label>Taxa Serviço (%)</Label>
+              <Label>Taxa Adicional (R$)</Label>
               <Input
                 type="number"
-                value={taxaServico}
-                onChange={(e) => setTaxaServico(parseFloat(e.target.value))}
+                value={taxaAdicional}
+                onChange={(e) => setTaxaAdicional(parseFloat(e.target.value))}
               />
             </div>
           </div>

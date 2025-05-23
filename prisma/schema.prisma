@@ -26,17 +26,18 @@ model User {
 }
 
 model Cliente {
-  id          String  @id @default(uuid())
-  nome        String
-  cpfCnpj     String  @unique
-  email       String?
-  telefone    String?
-  endereco    String?
-  razaoSocial String?
+  id              String  @id @default(uuid())
+  nome            String
+  cpfCnpj         String  @unique
+  email           String?
+  telefone        String?
+  endereco        String?
+  razaoSocial     String?
 
   taxaAntecipacao Float  @default(0.0) // taxa1
-  taxaBancaria    Float  @default(0.0) // taxa2
-  taxaServico     Float  @default(0.0) // taxa3
+  taxaBancaria    Float  @default(0.0) // taxa2 (valor fixo)
+  taxaServico     Float  @default(0.0) // taxa3 (percentual de comissão)
+  taxaAdicional   Float? @default(0.0) // taxa extra fixa
   taxaNegativacao Float? // se negativado
 
   duplicatas Duplicata[]
@@ -45,6 +46,7 @@ model Cliente {
 
   Bordero Bordero[]
 }
+
 
 model Duplicata {
   id               String          @id @default(uuid())

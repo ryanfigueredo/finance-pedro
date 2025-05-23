@@ -9,8 +9,9 @@ const clienteSchema = z.object({
   telefone: z.string().optional(),
   endereco: z.string().optional(),
   taxaAntecipacao: z.number().min(0).max(100),
-  taxaBancaria: z.number().min(0).max(100),
+  taxaBancaria: z.number().min(0),
   taxaServico: z.number().min(0).max(100),
+  taxaAdicional: z.number().min(0).optional().default(0),
   negativado: z.boolean(),
 });
 
@@ -37,7 +38,8 @@ export async function POST(req: Request) {
       taxaAntecipacao: data.taxaAntecipacao,
       taxaBancaria: data.taxaBancaria,
       taxaServico: data.taxaServico,
-      taxaNegativacao: data.negativado ? 3.5 : 0, // exemplo de taxa
+      taxaAdicional: data.taxaAdicional ?? 0, // NOVO CAMPO
+      taxaNegativacao: data.negativado ? 3.5 : 0,
     },
   });
 
