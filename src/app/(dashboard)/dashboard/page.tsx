@@ -84,7 +84,7 @@ export default async function Dashboard() {
     {
       dataPrevista: "2024-05-04",
       tipo: "Pagamento programado - Itaú",
-      valor: -300,
+      valor: -3000,
     },
     {
       dataPrevista: "2024-05-05",
@@ -198,14 +198,22 @@ export default async function Dashboard() {
             </h2>
             <ul className="text-sm space-y-1">
               {previstos.map((p, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>
+                <li key={i} className="flex justify-between gap-4">
+                  <span
+                    className="truncate overflow-hidden text-ellipsis max-w-[200px]"
+                    title={`${format(
+                      new Date(p.dataPrevista),
+                      "dd/MM/yyyy"
+                    )} - ${p.tipo}`}
+                  >
                     {format(new Date(p.dataPrevista), "dd/MM/yyyy")} - {p.tipo}
                   </span>
                   <span
-                    className={p.valor < 0 ? "text-red-600" : "text-green-600"}
+                    className={`text-end w-24 whitespace-nowrap ${
+                      p.valor < 0 ? "text-red-600" : "text-green-600"
+                    }`}
                   >
-                    R$ {p.valor.toLocaleString("pt-BR")}
+                    R$ {p.valor.toFixed(2).replace(".", ",")}
                   </span>
                 </li>
               ))}
@@ -216,18 +224,26 @@ export default async function Dashboard() {
 
       {/* Atraso */}
       <div className="lg:col-span-1">
-        <Card className="bg-red-100">
+        <Card className="">
           <CardContent className="p-4">
-            <h2 className="text-base font-semibold mb-2 text-red-800">
+            <h2 className="text-base font-semibold mb-2 ">
               Pagamentos em atraso
             </h2>
-            <ul className="text-sm text-red-700 space-y-1">
+            <ul className="text-sm  space-y-1">
               {atrasos.map((a, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>
+                <li key={i} className="flex justify-between gap-4">
+                  <span
+                    className="truncate overflow-hidden text-ellipsis max-w-[200px]"
+                    title={`${format(
+                      new Date(a.dataPrevista),
+                      "dd/MM/yyyy"
+                    )} - ${a.tipo}`}
+                  >
                     {format(new Date(a.dataPrevista), "dd/MM/yyyy")} - {a.tipo}
                   </span>
-                  <span>R$ {a.valor.toLocaleString("pt-BR")}</span>
+                  <span className="text-right  text-red-700 w-24 whitespace-nowrap">
+                    R$ {a.valor.toFixed(2).replace(".", ",")}
+                  </span>
                 </li>
               ))}
               <li className="flex justify-between font-bold mt-2 border-t pt-1">
@@ -236,7 +252,8 @@ export default async function Dashboard() {
                   R${" "}
                   {atrasos
                     .reduce((acc, a) => acc + a.valor, 0)
-                    .toLocaleString("pt-BR")}
+                    .toFixed(2)
+                    .replace(".", ",")}
                 </span>
               </li>
             </ul>
@@ -244,45 +261,25 @@ export default async function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4 w-full">
         <Link href="/duplicatas">
-          <KpiCard
-            title="Duplicatas Digitadas"
-            value={total.toString()}
-            icon={<FileText />}
-          />
+          <KpiCard title="Duplicatas Digitadas" value={total.toString()} />
         </Link>
 
         <Link href="/duplicatas?status=PENDENTE">
-          <KpiCard
-            title="Pendentes"
-            value={pendentes.toString()}
-            icon={<TrendingUp />}
-          />
+          <KpiCard title="Pendentes" value={pendentes.toString()} />
         </Link>
 
         <Link href="/duplicatas?status=PAGA">
-          <KpiCard
-            title="Liquidadas"
-            value={pagas.toString()}
-            icon={<BadgeDollarSign />}
-          />
+          <KpiCard title="Liquidadas" value={pagas.toString()} />
         </Link>
 
         <Link href="/duplicatas?status=VENCIDA">
-          <KpiCard
-            title="Vencidas"
-            value={vencidas.toString()}
-            icon={<TrendingDown />}
-          />
+          <KpiCard title="Vencidas" value={vencidas.toString()} />
         </Link>
 
-        <div className="col-span-full">
-          <LineChart />
-        </div>
-
         <Link href="/borderos">
-          <KpiCard title="Borderôs Gerados" value="↗ Clique para ver" />
+          <KpiCard title="Borderôs Gerados" value="↗" />
         </Link>
       </div>
     </div>

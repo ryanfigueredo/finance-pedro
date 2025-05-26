@@ -38,7 +38,7 @@ export default function ConsultaCreditoPage() {
   }
 
   return (
-    <div className="max-w-lg mx-auto mt-10 p-6 bg-white shadow-xl rounded-2xl">
+    <div className="flex flex-col gap-6 max-w-lg">
       <h1 className="text-xl font-semibold mb-4 text-zinc-800">
         Consulta de Crédito
       </h1>
