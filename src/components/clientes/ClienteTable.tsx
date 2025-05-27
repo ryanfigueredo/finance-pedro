@@ -16,6 +16,7 @@ type Cliente = {
   taxaAntecipacao: number;
   taxaBancaria: number;
   taxaServico: number;
+  taxaAdicional: number;
   negativado: boolean;
 };
 
