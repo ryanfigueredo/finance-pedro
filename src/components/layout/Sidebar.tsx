@@ -16,18 +16,18 @@ export function Sidebar() {
     { href: "/clientes", label: "Clientes" },
     { href: "/consulta-credito", label: "Consulta de Crédito" },
     { href: "/borderos", label: "Borderôs" },
+    { href: "/usuarios", label: "Usuários" },
   ];
 
   return (
     <>
-      {/* Botão mobile */}
-      <div className="sm:hidden  p-4 border-b bg-white flex items-start gap-3">
+      {/* Mobile */}
+      <div className="sm:hidden p-4 border-b bg-white flex items-start gap-3">
         <button onClick={() => setOpen(!open)}>
           <Menu className="w-6 h-6 text-zinc-700" />
         </button>
       </div>
 
-      {/* Sidebar mobile */}
       {open && (
         <aside className="sm:hidden bg-white border-b px-4 py-3 space-y-2">
           {navItems.map((item) => (
@@ -48,7 +48,7 @@ export function Sidebar() {
         </aside>
       )}
 
-      {/* Sidebar desktop */}
+      {/* Desktop */}
       <aside className="hidden sm:block w-60 h-full bg-white border-r text-sm">
         <div className="p-6 font-bold text-lg text-primary">Finance Pedro</div>
         <nav className="flex flex-col gap-1 px-4">

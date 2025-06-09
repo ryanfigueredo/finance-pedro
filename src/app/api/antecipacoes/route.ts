@@ -33,3 +33,27 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ antecipacao }, { status: 201 });
 }
+
+export async function GET() {
+  try {
+    const antecipacoes = await prisma.antecipacao.findMany({
+      orderBy: { dataSolicitada: "desc" },
+      include: {
+        duplicata: {
+          select: {
+            numero: true,
+            valor: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(antecipacoes);
+  } catch (error) {
+    console.error("Erro ao buscar antecipações:", error);
+    return NextResponse.json(
+      { error: "Erro ao buscar antecipações" },
+      { status: 500 }
+    );
+  }
+}

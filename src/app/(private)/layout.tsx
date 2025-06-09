@@ -1,24 +1,13 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
+"use client";
+
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return redirect("/login");
-  }
-
-  // Exemplo: se quiser restringir só para MASTER:
-  // if (session.user.role !== "MASTER") {
-  //   return redirect("/acesso-negado");
-  // }
-
   return (
     <div className="flex h-screen bg-background text-foreground">
       <Sidebar />
