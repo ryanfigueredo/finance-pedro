@@ -12,17 +12,11 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await signIn("credentials", {
-      redirect: false,
+    await signIn("credentials", {
       email,
       password,
+      callbackUrl: "/dashboard",
     });
-
-    if (res?.ok) {
-      router.push("/dashboard");
-    } else {
-      setError("Credenciais inválidas");
-    }
   };
 
   return (

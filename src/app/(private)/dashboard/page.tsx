@@ -13,6 +13,7 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { ChartDuplicatasPorStatus } from "@/components/dashboard/ChartDuplicatasPorStatus";
 
 export default async function Dashboard() {
   const movimentacoes = [
@@ -102,14 +103,33 @@ export default async function Dashboard() {
     .reduce((acc, m) => acc + m.valor, 0);
   const saldo = entradas + saidas;
 
-  const [total, vencidas, pagas, pendentes] = await Promise.all([
+  const [
+    total,
+    vencidas,
+    pagas,
+    pendentes,
+    antecipadas,
+    canceladas,
+    statusCounts,
+  ] = await Promise.all([
     prisma.duplicata.count(),
     prisma.duplicata.count({
       where: { vencimento: { lt: new Date() }, status: "PENDENTE" },
     }),
     prisma.duplicata.count({ where: { status: "PAGA" } }),
     prisma.duplicata.count({ where: { status: "PENDENTE" } }),
+    prisma.duplicata.count({ where: { status: "ANTECIPADA" } }),
+    prisma.duplicata.count({ where: { status: "CANCELADA" } }),
+    prisma.duplicata.groupBy({
+      by: ["status"],
+      _count: true,
+    }),
   ]);
+
+  const chartData = statusCounts.map((item) => ({
+    status: item.status,
+    quantidade: item._count,
+  }));
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 auto-rows-max gap-4">
@@ -259,6 +279,11 @@ export default async function Dashboard() {
             </ul>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="col-span-full bg-white p-4 rounded-lg shadow">
+        <h2 className="text-lg font-semibold mb-4">Gráfico por Status</h2>
+        <ChartDuplicatasPorStatus data={chartData} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-4 w-full">

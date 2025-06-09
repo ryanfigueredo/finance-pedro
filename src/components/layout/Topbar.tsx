@@ -12,7 +12,9 @@ export function Topbar() {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => signOut({ callbackUrl: "/login" })}
+        onClick={async () => {
+          await signOut({ redirect: true, callbackUrl: "/login" });
+        }}
       >
         Sair
       </Button>
