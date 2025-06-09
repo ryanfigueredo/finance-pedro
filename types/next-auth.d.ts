@@ -10,6 +10,7 @@ declare module "next-auth" {
     };
   }
 
+  // 👇 Remover o campo `password` aqui
   interface User {
     id: string;
     name: string;

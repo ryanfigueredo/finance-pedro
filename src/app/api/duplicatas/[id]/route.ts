@@ -1,12 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  const id = req.nextUrl.pathname.split("/").pop(); // extrai o ID da URL
-
-  if (!id) {
-    return NextResponse.json({ error: "ID não informado" }, { status: 400 });
-  }
+export async function GET(_req: Request, context: any) {
+  const id = context.params.id;
 
   try {
     const duplicata = await prisma.duplicata.findUnique({

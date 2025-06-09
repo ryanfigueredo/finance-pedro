@@ -14,7 +14,7 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
       },
-      async authorize(credentials, _req) {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -26,11 +26,12 @@ export const authOptions: AuthOptions = {
         const valid = await compare(credentials.password, user.password);
         if (!valid) return null;
 
+        // Retorna apenas os dados necessários para o token
         return {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role, // ✅ Isso resolve o erro de tipagem no callback
+          role: user.role,
         };
       },
     }),
@@ -41,16 +42,18 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         token.name = user.name;
         token.email = user.email;
-        token.sub = user.id;
         token.role = (user as any).role;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token?.sub) {
-        session.user.id = token.sub as string;
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
         session.user.role = token.role as "MASTER" | "ADMIN" | "CLIENTE";
       }
       return session;
