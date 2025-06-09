@@ -1,12 +1,12 @@
-// src/lib/authOptions.ts
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { compare } from "bcryptjs";
-import { prisma } from "@/lib/prisma";
-import { AuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
+import type { AuthOptions } from "next-auth";
 
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -14,7 +14,7 @@ export const authOptions: AuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, _req) {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -23,37 +23,37 @@ export const authOptions: AuthOptions = {
 
         if (!user || !user.password) return null;
 
-        const isValid = await compare(credentials.password, user.password);
-        if (!isValid) return null;
+        const valid = await compare(credentials.password, user.password);
+        if (!valid) return null;
 
         return {
           id: user.id,
           name: user.name,
           email: user.email,
+          role: user.role, // ✅ Isso resolve o erro de tipagem no callback
         };
       },
     }),
   ],
-  session: {
-    strategy: "jwt",
-  },
   pages: {
     signIn: "/login",
   },
   callbacks: {
-    async session({ session, token }) {
-      if (token?.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.name = user.name;
         token.email = user.email;
         token.sub = user.id;
+        token.role = (user as any).role;
       }
       return token;
+    },
+    async session({ session, token }) {
+      if (token?.sub) {
+        session.user.id = token.sub as string;
+        session.user.role = token.role as "MASTER" | "ADMIN" | "CLIENTE";
+      }
+      return session;
     },
   },
 };

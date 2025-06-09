@@ -5,7 +5,7 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await hash("123456", 10); // você pode alterar a senha
+  const password = await hash("123456", 10);
 
   const user = await prisma.user.upsert({
     where: { email: "master@financepedro.com" },
