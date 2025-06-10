@@ -18,11 +18,10 @@ import {
   formatCNPJ,
 } from "@brazilian-utils/brazilian-utils";
 
-// ... imports mantidos
-
 export function NovoClienteDialog() {
   const [nome, setNome] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
+  const [inscEstadual, setInscEstadual] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
@@ -55,6 +54,7 @@ export function NovoClienteDialog() {
       body: JSON.stringify({
         nome,
         cpfCnpj,
+        inscEstadual,
         email,
         telefone,
         endereco,
@@ -99,6 +99,21 @@ export function NovoClienteDialog() {
               value={cpfCnpj}
               maxLength={18}
               onChange={(e) => handleCpfCnpjChange(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>Inscrição Estadual</Label>
+            <Input
+              value={inscEstadual}
+              maxLength={18}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              onChange={(e) => {
+                const onlyNumbers = e.target.value.replace(/\D/g, "");
+                setInscEstadual(onlyNumbers);
+              }}
+              placeholder="Opcional"
             />
           </div>
 

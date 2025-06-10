@@ -1,15 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
-  const borderos = await prisma.bordero.findMany({
-    orderBy: { dataGeracao: "desc" },
-    include: { cliente: true },
-  });
-
-  return NextResponse.json(borderos);
-}
-
+// Geração manual de borderô por seleção de duplicatas
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -46,17 +38,11 @@ export async function POST(req: Request) {
     const clienteId = duplicatas[0].clienteId;
 
     const valorBruto = duplicatas.reduce((acc, d) => acc + d.valor, 0);
-    const totalTaxas = duplicatas.reduce((acc, d) => {
-      const c = d.cliente;
-      const taxas =
-        (c.taxaAntecipacao ?? 0) +
-        (c.taxaBancaria ?? 0) +
-        (c.taxaServico ?? 0) +
-        (c.taxaNegativacao ?? 0);
-      return acc + d.valor * (taxas / 100);
-    }, 0);
-
-    const valorLiquido = valorBruto - totalTaxas;
+    const valorLiquido = duplicatas.reduce(
+      (acc, d) => acc + (d.resultado ?? 0),
+      0
+    );
+    const totalTaxas = valorBruto - valorLiquido;
 
     const bordero = await prisma.bordero.create({
       data: {
@@ -70,24 +56,30 @@ export async function POST(req: Request) {
       },
     });
 
-    await Promise.all(
-      duplicatas.map((d) =>
-        prisma.duplicata.update({
-          where: { id: d.id },
-          data: {
-            status: "ANTECIPADA",
-            borderoId: bordero.id,
-          },
-        })
-      )
-    );
+    await prisma.duplicata.updateMany({
+      where: { id: { in: duplicataIds } },
+      data: {
+        status: "ANTECIPADA",
+        borderoId: bordero.id,
+      },
+    });
 
     return NextResponse.json({ bordero }, { status: 201 });
   } catch (error) {
-    console.error("Erro ao gerar borderô:", error);
+    console.error("Erro ao gerar borderô manual:", error);
     return NextResponse.json(
-      { error: "Erro interno ao gerar borderô." },
+      { error: "Erro interno ao gerar borderô manual." },
       { status: 500 }
     );
   }
+}
+
+// Consulta de borderôs existentes
+export async function GET() {
+  const borderos = await prisma.bordero.findMany({
+    orderBy: { dataGeracao: "desc" },
+    include: { cliente: true },
+  });
+
+  return NextResponse.json(borderos);
 }

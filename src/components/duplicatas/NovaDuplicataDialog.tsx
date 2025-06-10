@@ -26,6 +26,8 @@ export function NovaDuplicataDialog() {
   const [valor, setValor] = useState(10000);
   const [vencimento, setVencimento] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [sacadoNome, setSacadoNome] = useState("");
+  const [sacadoCpfCnpj, setSacadoCpfCnpj] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [clientes, setClientes] = useState<any[]>([]);
@@ -35,10 +37,20 @@ export function NovaDuplicataDialog() {
 
   const { data: session } = useSession();
 
+  async function fetchProximoNumero() {
+    try {
+      const res = await fetch("/api/duplicatas/proximo-numero");
+      const data = await res.json();
+      setNumero(data.proximoNumero);
+    } catch (err) {
+      console.error("Erro ao gerar número da duplicata:", err);
+    }
+  }
+
   async function handleSubmit() {
     setLoading(true);
 
-    if (!numero || !clienteId || !valor || !vencimento) {
+    if (!clienteId || !valor || !vencimento || !sacadoNome || !sacadoCpfCnpj) {
       alert("Preencha todos os campos obrigatórios.");
       setLoading(false);
       return;
@@ -49,12 +61,13 @@ export function NovaDuplicataDialog() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          numero,
           valor,
           vencimento,
           observacoes,
           clienteId,
-          userId: "f38f31fd-0974-4475-9aa3-4aab0c6d6a70", // mockado temporariamente
+          sacadoNome,
+          sacadoCpfCnpj,
+          userId: "f38f31fd-0974-4475-9aa3-4aab0c6d6a70",
         }),
       });
 
@@ -90,6 +103,7 @@ export function NovaDuplicataDialog() {
     }
 
     fetchClientes();
+    fetchProximoNumero();
   }, []);
 
   useEffect(() => {
@@ -131,14 +145,12 @@ export function NovaDuplicataDialog() {
         </DialogHeader>
 
         <div className="grid gap-4">
-          <div>
-            <Label>Número</Label>
-            <Input
-              placeholder="000123"
-              value={numero}
-              onChange={(e) => setNumero(e.target.value)}
-            />
-          </div>
+          {numero && (
+            <div>
+              <Label>Número</Label>
+              <Input value={numero} disabled />
+            </div>
+          )}
 
           <div>
             <Label>Cliente</Label>
@@ -160,6 +172,27 @@ export function NovaDuplicataDialog() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <Label>Nome do Sacado</Label>
+            <Input
+              placeholder="Nome completo ou empresa"
+              value={sacadoNome}
+              onChange={(e) => setSacadoNome(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>CPF ou CNPJ do Sacado</Label>
+            <Input
+              placeholder="Somente números"
+              value={sacadoCpfCnpj}
+              onChange={(e) =>
+                setSacadoCpfCnpj(e.target.value.replace(/\D/g, ""))
+              }
+              maxLength={18}
+            />
           </div>
 
           <div>

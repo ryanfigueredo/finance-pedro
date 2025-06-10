@@ -3,7 +3,6 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 
 const schema = z.object({
-  numero: z.string().min(1),
   valor: z.number(),
   valorComDesconto: z.number().optional(),
   vencimento: z.string().refine((date) => !isNaN(Date.parse(date)), {
@@ -11,6 +10,9 @@ const schema = z.object({
   }),
   observacoes: z.string().optional(),
   clienteId: z.string(),
+  sacadoNome: z.string().min(1),
+  sacadoCpfCnpj: z.string().min(11),
+  userId: z.string(),
 });
 
 export async function POST(req: Request) {
@@ -26,10 +28,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const { numero, valor, vencimento, observacoes, clienteId } = parsed.data;
-
-  // ✅ ID mockado temporário até NextAuth estar funcionando
-  const userId = "f38f31fd-0974-4475-9aa3-4aab0c6d6a70";
+  const {
+    valor,
+    vencimento,
+    observacoes,
+    clienteId,
+    sacadoNome,
+    sacadoCpfCnpj,
+    userId,
+  } = parsed.data;
 
   const cliente = await prisma.cliente.findUnique({
     where: { id: clienteId },
@@ -42,7 +49,6 @@ export async function POST(req: Request) {
     );
   }
 
-  // 🧠 Cálculo de taxas
   const hoje = new Date();
   const venc = new Date(vencimento);
   const dias = Math.max(
@@ -57,15 +63,24 @@ export async function POST(req: Request) {
 
   const resultado = valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
 
+  // Gerar número interno e público sequencial
+  const totalDuplicatas = await prisma.duplicata.count();
+  const numero = (totalDuplicatas + 1).toString().padStart(6, "0");
+  const numeroPublico = `DUP-${numero}`;
+
   const duplicata = await prisma.duplicata.create({
     data: {
       numero,
+      numeroPublico,
       valor,
       vencimento: venc,
       observacoes,
       status: "PENDENTE",
       clienteId,
       userId,
+      sacadoNome,
+      sacadoCpfCnpj,
+      emissao: new Date(),
       valorComDesconto: valor - valor * totalTaxasPercentuais,
       resultado: parseFloat(resultado.toFixed(2)),
     },
@@ -77,8 +92,18 @@ export async function POST(req: Request) {
 export async function GET() {
   const duplicatas = await prisma.duplicata.findMany({
     orderBy: { emissao: "desc" },
-    include: {
-      cliente: { select: { nome: true } },
+    select: {
+      id: true,
+      numero: true,
+      valor: true,
+      status: true,
+      vencimento: true,
+      emissao: true,
+      resultado: true,
+      sacadoNome: true,
+      cliente: {
+        select: { nome: true },
+      },
     },
   });
 

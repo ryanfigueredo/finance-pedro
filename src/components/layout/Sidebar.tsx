@@ -15,7 +15,6 @@ export function Sidebar() {
     { href: "/duplicatas", label: "Duplicatas" },
     { href: "/clientes", label: "Clientes" },
     { href: "/consulta-credito", label: "Consulta de Crédito" },
-    { href: "/borderos", label: "Borderôs" },
     { href: "/usuarios", label: "Usuários" },
   ];
 

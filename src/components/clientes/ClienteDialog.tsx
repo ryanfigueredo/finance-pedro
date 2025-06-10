@@ -25,6 +25,7 @@ type Cliente = {
   id: string;
   nome: string;
   cpfCnpj: string;
+  inscEstadual?: string;
   email?: string;
   telefone?: string;
   endereco?: string;
@@ -40,6 +41,7 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
 
   const [nome, setNome] = useState(cliente?.nome ?? "");
   const [cpfCnpj, setCpfCnpj] = useState(cliente?.cpfCnpj ?? "");
+  const [inscEstadual, setInscEstadual] = useState(cliente?.inscEstadual ?? "");
   const [email, setEmail] = useState(cliente?.email ?? "");
   const [telefone, setTelefone] = useState(cliente?.telefone ?? "");
   const [endereco, setEndereco] = useState(cliente?.endereco ?? "");
@@ -75,6 +77,7 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
     const body = {
       nome,
       cpfCnpj,
+      inscEstadual,
       email,
       telefone,
       endereco,
@@ -139,6 +142,21 @@ export function ClienteDialog({ cliente }: { cliente?: Cliente }) {
               value={cpfCnpj}
               maxLength={18}
               onChange={(e) => handleCpfCnpjChange(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label>Inscrição Estadual</Label>
+            <Input
+              value={inscEstadual}
+              maxLength={18}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              onChange={(e) => {
+                const onlyNumbers = e.target.value.replace(/\D/g, "");
+                setInscEstadual(onlyNumbers);
+              }}
+              placeholder="Opcional"
             />
           </div>
 

@@ -26,6 +26,7 @@ export function AnteciparDuplicataDialog({
 }: Props) {
   const [valorFinal, setValorFinal] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [detalhes, setDetalhes] = useState<any>(null);
 
   async function calcularValorFinal() {
     try {
@@ -52,6 +53,17 @@ export function AnteciparDuplicataDialog({
       const resultado =
         valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
       setValorFinal(Number(resultado.toFixed(2)));
+
+      setDetalhes({
+        dias,
+        taxaAntecipacao: cliente.taxaAntecipacao,
+        taxaServico: cliente.taxaServico,
+        taxaBancaria: cliente.taxaBancaria,
+        taxaAdicional: cliente.taxaAdicional,
+        taxaComposta: taxaComposta * 100,
+        totalTaxasPercentuais: totalTaxasPercentuais * 100,
+        totalTaxasFixas,
+      });
     } catch (err) {
       console.error("Erro ao calcular valor final:", err);
       setValorFinal(null);
@@ -97,13 +109,32 @@ export function AnteciparDuplicataDialog({
           <DialogTitle>Antecipar Duplicata #{numero}</DialogTitle>
         </DialogHeader>
 
-        {valorFinal !== null ? (
+        {valorFinal !== null && detalhes ? (
           <div className="text-sm text-zinc-700 space-y-2">
             <p>
               <strong>Valor original:</strong> R$ {valor.toFixed(2)}
             </p>
             <p>
-              <strong>Taxa de antecipação:</strong> {(taxa * 100).toFixed(1)}%
+              <strong>Dias até vencimento:</strong> {detalhes.dias} dias
+            </p>
+            <p>
+              <strong>Taxa composta aplicada:</strong>{" "}
+              {detalhes.taxaComposta.toFixed(2)}%
+            </p>
+            <p>
+              <strong>Taxas adicionais (%):</strong> {detalhes.taxaServico ?? 0}
+              % serviço
+            </p>
+            <p>
+              <strong>Taxas fixas (R$):</strong> R${" "}
+              {(detalhes.taxaBancaria ?? 0) + (detalhes.taxaAdicional ?? 0)}
+            </p>
+            <p>
+              <strong>Total descontado:</strong>{" "}
+              {(valor - valorFinal).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL",
+              })}
             </p>
             <p>
               <strong>Valor final a receber:</strong>{" "}

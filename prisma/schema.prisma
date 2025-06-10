@@ -89,6 +89,7 @@ model Cliente {
 model Duplicata {
   id               String          @id @default(uuid())
   numero           String          @unique
+  numeroPublico    String?         @unique // Ex: DUP-0001
   valor            Float
   valorComDesconto Float?
   vencimento       DateTime
@@ -97,19 +98,24 @@ model Duplicata {
   observacoes      String?
   resultado        Float? 
 
-  userId      String
-  clienteId   String
-  borderoId   String?  
+  sacadoNome     String   @default("SACADO TEMP")
+  sacadoCpfCnpj  String   @default("00000000000")
+  
 
-  user        User      @relation(fields: [userId], references: [id])
-  cliente     Cliente   @relation(fields: [clienteId], references: [id])
-  bordero     Bordero?  @relation(fields: [borderoId], references: [id])
-  arquivos    Arquivo[]
-  antecipacoes Antecipacao[]
+  userId           String
+  clienteId        String
+  borderoId        String?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user             User      @relation(fields: [userId], references: [id])
+  cliente          Cliente   @relation(fields: [clienteId], references: [id])
+  bordero          Bordero?  @relation(fields: [borderoId], references: [id])
+  arquivos         Arquivo[]
+  antecipacoes     Antecipacao[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
+
 
 
 
