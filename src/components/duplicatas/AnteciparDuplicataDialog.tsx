@@ -122,13 +122,18 @@ export function AnteciparDuplicataDialog({
               {detalhes.taxaComposta.toFixed(2)}%
             </p>
             <p>
-              <strong>Taxas adicionais (%):</strong> {detalhes.taxaServico ?? 0}
-              % serviço
+              <strong>Taxa de Serviço (R$):</strong> R${" "}
+              {(detalhes.taxaServico ?? 0).toFixed(2)}
             </p>
             <p>
-              <strong>Taxas fixas (R$):</strong> R${" "}
-              {(detalhes.taxaBancaria ?? 0) + (detalhes.taxaAdicional ?? 0)}
+              <strong>Taxa Bancária (R$):</strong> R${" "}
+              {(detalhes.taxaBancaria ?? 0).toFixed(2)}
             </p>
+            <p>
+              <strong>Taxa Adicional (R$):</strong> R${" "}
+              {(detalhes.taxaAdicional ?? 0).toFixed(2)}
+            </p>
+
             <p>
               <strong>Total descontado:</strong>{" "}
               {(valor - valorFinal).toLocaleString("pt-BR", {

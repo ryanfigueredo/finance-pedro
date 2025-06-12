@@ -4,14 +4,7 @@ import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { DialogDetalhesBordero } from "./DialogDetalhesBordero";
 
 interface Bordero {
   id: string;
@@ -135,50 +128,14 @@ export default function BorderosTable() {
               <td className="p-3">R$ {b.totalTaxas.toFixed(2)}</td>
               <td className="p-3">R$ {b.valorLiquido.toFixed(2)}</td>
               <td className="p-3 flex gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedBordero(b)}
-                    >
+                <DialogDetalhesBordero
+                  borderoId={b.id}
+                  trigger={
+                    <Button size="sm" variant="outline">
                       Detalhes
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>
-                        Borderô de {b.cliente.nome} -{" "}
-                        {format(new Date(b.dataGeracao), "dd/MM/yyyy", {
-                          locale: ptBR,
-                        })}
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="text-sm text-zinc-700 space-y-2">
-                      <p>
-                        <strong>Valor Bruto:</strong> R${" "}
-                        {b.valorBruto.toLocaleString("pt-BR")}
-                      </p>
-                      <p>
-                        <strong>Taxas:</strong> R${" "}
-                        {b.totalTaxas.toLocaleString("pt-BR")}
-                      </p>
-                      <p>
-                        <strong>Valor Líquido:</strong> R${" "}
-                        {b.valorLiquido.toLocaleString("pt-BR")}
-                      </p>
-                      <Link
-                        href={`/api/bordero/${b.id}/pdf`}
-                        target="_blank"
-                        className="block mt-4"
-                      >
-                        <Button variant="secondary" size="sm">
-                          Visualizar PDF
-                        </Button>
-                      </Link>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                  }
+                />
               </td>
             </tr>
           ))}

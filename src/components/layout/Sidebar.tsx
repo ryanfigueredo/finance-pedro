@@ -14,8 +14,10 @@ export function Sidebar() {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/duplicatas", label: "Duplicatas" },
     { href: "/clientes", label: "Clientes" },
-    { href: "/consulta-credito", label: "Consulta de Crédito" },
     { href: "/usuarios", label: "Usuários" },
+    { href: "/relatorios", label: "Relatórios" },
+    { href: "/painel-gerencial", label: "Painel Gerencial" },
+    { href: "/minhas-duplicatas", label: "Minhas Duplicatas" },
   ];
 
   return (
