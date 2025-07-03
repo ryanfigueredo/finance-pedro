@@ -11,7 +11,7 @@ const schema = z.object({
   observacoes: z.string().optional(),
   clienteId: z.string(),
   sacadoNome: z.string().min(1),
-  sacadoCpfCnpj: z.string().min(11),
+  sacadoCpfCnpj: z.string().regex(/^\d{11}$|^\d{14}$/, "CPF ou CNPJ inválido"),
   userId: z.string(),
 });
 
