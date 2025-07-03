@@ -5,18 +5,20 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { duplicataIds } = body;
+    const { duplicatas: duplicatasInput } = body;
 
     if (
-      !duplicataIds ||
-      !Array.isArray(duplicataIds) ||
-      duplicataIds.length === 0
+      !duplicatasInput ||
+      !Array.isArray(duplicatasInput) ||
+      duplicatasInput.length === 0
     ) {
       return NextResponse.json(
-        { error: "Nenhuma duplicata selecionada." },
+        { error: "Nenhuma duplicata enviada." },
         { status: 400 }
       );
     }
+
+    const duplicataIds = duplicatasInput.map((d: any) => d.id);
 
     const duplicatas = await prisma.duplicata.findMany({
       where: {
@@ -37,9 +39,24 @@ export async function POST(req: Request) {
 
     const clienteId = duplicatas[0].clienteId;
 
-    const valorBruto = duplicatas.reduce((acc, d) => acc + d.valor, 0);
-    const valorLiquido = duplicatas.reduce(
-      (acc, d) => acc + (d.resultado ?? 0),
+    const resultadoMap = new Map(
+      duplicatasInput.map((d: { id: string; resultado: number }) => [
+        d.id,
+        d.resultado,
+      ])
+    );
+
+    const duplicatasComResultado = duplicatas.map((d) => ({
+      ...d,
+      resultado: resultadoMap.get(d.id) ?? 0,
+    }));
+
+    const valorBruto = duplicatasComResultado.reduce(
+      (acc, d) => acc + d.valor,
+      0
+    );
+    const valorLiquido = duplicatasComResultado.reduce(
+      (acc, d) => acc + d.resultado,
       0
     );
     const totalTaxas = valorBruto - valorLiquido;
@@ -56,13 +73,18 @@ export async function POST(req: Request) {
       },
     });
 
-    await prisma.duplicata.updateMany({
-      where: { id: { in: duplicataIds } },
-      data: {
-        status: "ANTECIPADA",
-        borderoId: bordero.id,
-      },
-    });
+    await Promise.all(
+      duplicatas.map((d) =>
+        prisma.duplicata.update({
+          where: { id: d.id },
+          data: {
+            status: "ANTECIPADA",
+            borderoId: bordero.id,
+            resultado: resultadoMap.get(d.id) ?? 0,
+          },
+        })
+      )
+    );
 
     return NextResponse.json({ bordero }, { status: 201 });
   } catch (error) {
@@ -74,12 +96,20 @@ export async function POST(req: Request) {
   }
 }
 
-// Consulta de borderôs existentes
+// Consulta de todos os borderôs existentes
 export async function GET() {
-  const borderos = await prisma.bordero.findMany({
-    orderBy: { dataGeracao: "desc" },
-    include: { cliente: true },
-  });
+  try {
+    const borderos = await prisma.bordero.findMany({
+      orderBy: { dataGeracao: "desc" },
+      include: { cliente: true },
+    });
 
-  return NextResponse.json(borderos);
+    return NextResponse.json(borderos);
+  } catch (error) {
+    console.error("Erro ao buscar borderôs:", error);
+    return NextResponse.json(
+      { error: "Erro interno ao buscar borderôs." },
+      { status: 500 }
+    );
+  }
 }

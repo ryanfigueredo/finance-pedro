@@ -5,6 +5,15 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Button } from "@/components/ui/button";
 import { DialogDetalhesBordero } from "./DialogDetalhesBordero";
+import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import Link from "next/link";
 
 interface Bordero {
   id: string;
@@ -15,10 +24,25 @@ interface Bordero {
   cliente: {
     nome: string;
   };
+  duplicatas: {
+    status: string;
+  }[];
 }
 
 export default function BorderosTable() {
+  const [filtroCliente, setFiltroCliente] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("");
+
   const [borderos, setBorderos] = useState<Bordero[]>([]);
+  const borderosFiltrados = borderos.filter((b) => {
+    const nomeMatch = b.cliente.nome
+      .toLowerCase()
+      .includes(filtroCliente.toLowerCase());
+    const statusMatch =
+      filtroStatus === "" ||
+      b.duplicatas.some((d: { status: string }) => d.status === filtroStatus);
+    return nomeMatch && statusMatch;
+  });
   const [selectedBordero, setSelectedBordero] = useState<Bordero | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -85,14 +109,11 @@ export default function BorderosTable() {
           Borderôs Gerados
         </h2>
         <div className="flex gap-2">
-          <Button
-            onClick={gerarManual}
-            disabled={loading}
-            variant="secondary"
-            size="sm"
-          >
-            Gerar Borderô Manual
-          </Button>
+          <Link href="/borderos/gerar">
+            <Button variant="secondary" size="sm">
+              Gerar Borderô Manual
+            </Button>
+          </Link>
           <Button
             onClick={gerarAutomaticamente}
             disabled={loading}
@@ -102,6 +123,26 @@ export default function BorderosTable() {
             {loading ? "Gerando..." : "Consolidar Borderôs"}
           </Button>
         </div>
+      </div>
+      <div className="flex items-center gap-4 px-4 pt-2">
+        <Input
+          placeholder="Filtrar por cliente..."
+          value={filtroCliente}
+          onChange={(e) => setFiltroCliente(e.target.value)}
+          className="w-64"
+        />
+        <Select onValueChange={setFiltroStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Status da duplicata" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="TODOS">Todos</SelectItem>
+            <SelectItem value="PENDENTE">PENDENTE</SelectItem>
+            <SelectItem value="ANTECIPADA">ANTECIPADA</SelectItem>
+            <SelectItem value="PAGA">PAGA</SelectItem>
+            <SelectItem value="CANCELADA">CANCELADA</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <table className="w-full text-sm mt-4">
@@ -116,7 +157,7 @@ export default function BorderosTable() {
           </tr>
         </thead>
         <tbody>
-          {borderos.map((b) => (
+          {borderosFiltrados.map((b) => (
             <tr key={b.id} className="border-b last:border-none">
               <td className="p-3">
                 {format(new Date(b.dataGeracao), "dd/MM/yyyy", {

@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/select";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function NovaDuplicataDialog() {
   const [numero, setNumero] = useState("");
@@ -119,18 +125,30 @@ export function NovaDuplicataDialog() {
       Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
     );
 
-    const taxaComposta =
-      Math.pow(1 + clienteSelecionado.taxaAntecipacao / 100, dias) - 1;
+    // Normalização das taxas
+    const taxaAntecipacao = clienteSelecionado.taxaAntecipacao ?? 0; // %
+    const taxaServico = clienteSelecionado.taxaServico ?? 0; // %
+    const taxaBancaria = clienteSelecionado.taxaBancaria ?? 0; // R$
+    const taxaAdicional = clienteSelecionado.taxaAdicional ?? 0; // R$
 
-    const totalTaxasPercentuais =
-      taxaComposta + (clienteSelecionado.taxaServico ?? 0) / 100;
+    // Cálculo proporcional da taxa de antecipação por dia
+    const taxaAntecipacaoPorDia = taxaAntecipacao / 30 / 100;
+    const descontoAntecipacao = valor * taxaAntecipacaoPorDia * dias;
 
-    const totalTaxasFixas =
-      (clienteSelecionado.taxaBancaria ?? 0) +
-      (clienteSelecionado.taxaAdicional ?? 0);
+    // Cálculo da taxa de serviço percentual
+    const descontoServico = valor * (taxaServico / 100);
 
-    const r = valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
-    setResultado(Number(r.toFixed(2)));
+    // Soma de taxas fixas
+    const descontoFixos = taxaBancaria + taxaAdicional;
+
+    // Total descontado
+    const totalDescontado =
+      descontoAntecipacao + descontoServico + descontoFixos;
+
+    // Saldo líquido (resultado)
+    const resultadoFinal = valor - totalDescontado;
+
+    setResultado(Number(resultadoFinal.toFixed(2)));
   }, [clienteSelecionado, valor, vencimento]);
 
   return (
@@ -211,11 +229,58 @@ export function NovaDuplicataDialog() {
               value={vencimento}
               onChange={(e) => setVencimento(e.target.value)}
             />
-            {resultado !== null && (
-              <p className="text-sm text-green-600 mt-1">
-                Resultado estimado:{" "}
-                <strong>R$ {resultado.toLocaleString("pt-BR")}</strong>
-              </p>
+            {resultado !== null && clienteSelecionado && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="text-sm text-green-600 mt-1 cursor-help">
+                      Saldo para antecipação:{" "}
+                      <strong>R$ {resultado.toLocaleString("pt-BR")}</strong>
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent className="text-xs max-w-xs">
+                    <p>
+                      <strong>Base:</strong> R$ {valor.toLocaleString("pt-BR")}
+                    </p>
+                    <p>
+                      <strong>
+                        Antecipação ({clienteSelecionado.taxaAntecipacao}%):
+                      </strong>{" "}
+                      {(
+                        valor *
+                        (clienteSelecionado.taxaAntecipacao / 30 / 100)
+                      ).toFixed(2)}{" "}
+                      por dia ×{" "}
+                      {Math.max(
+                        1,
+                        Math.ceil(
+                          (new Date(vencimento).getTime() -
+                            new Date().getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        )
+                      )}{" "}
+                      dias
+                    </p>
+                    <p>
+                      <strong>
+                        Serviço ({clienteSelecionado.taxaServico}%):
+                      </strong>{" "}
+                      R${" "}
+                      {(valor * (clienteSelecionado.taxaServico / 100)).toFixed(
+                        2
+                      )}
+                    </p>
+                    <p>
+                      <strong>Bancária:</strong> R${" "}
+                      {Number(clienteSelecionado.taxaBancaria).toFixed(2)}
+                    </p>
+                    <p>
+                      <strong>Adicional:</strong> R${" "}
+                      {Number(clienteSelecionado.taxaAdicional).toFixed(2)}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
 

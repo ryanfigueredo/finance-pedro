@@ -13,6 +13,7 @@ export function Sidebar() {
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/duplicatas", label: "Duplicatas" },
+    { href: "/borderos", label: "Borderôs" },
     { href: "/clientes", label: "Clientes" },
     { href: "/usuarios", label: "Usuários" },
     { href: "/relatorios", label: "Relatórios" },

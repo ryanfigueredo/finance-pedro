@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
-import BorderosTable from "./BorderosTable";
 import { Button } from "../ui/button";
 import {
   DropdownMenu,
@@ -22,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import React from "react";
+import { UltimosBorderos } from "./UltimosBorderos";
 
 type Status = "PENDENTE" | "PAGA" | "ANTECIPADA" | "CANCELADA";
 
@@ -347,7 +347,7 @@ export function DuplicataTable() {
       </div>
 
       <div className="mt-10">
-        <BorderosTable />
+        <UltimosBorderos />
       </div>
     </div>
   );
