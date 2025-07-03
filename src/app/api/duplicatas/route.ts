@@ -51,17 +51,18 @@ export async function POST(req: Request) {
 
   const hoje = new Date();
   const venc = new Date(vencimento);
-  const dias = Math.max(
-    1,
-    Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  const msPorDia = 1000 * 60 * 60 * 24;
+  const diffMs = venc.getTime() - hoje.getTime();
+  const dias = Math.max(0, Math.floor(diffMs / msPorDia));
 
-  const taxaComposta = Math.pow(1 + cliente.taxaAntecipacao / 100, dias) - 1;
-  const totalTaxasPercentuais = taxaComposta + (cliente.taxaServico ?? 0) / 100;
+  const taxaDiaria = cliente.taxaAntecipacao / 30 / 100;
+  const descontoAntecipacao = valor * taxaDiaria * dias;
+  const totalTaxasPercentuais = (cliente.taxaServico ?? 0) / 100;
   const totalTaxasFixas =
     (cliente.taxaAdicional ?? 0) + (cliente.taxaBancaria ?? 0);
-
-  const resultado = valor - (valor * totalTaxasPercentuais + totalTaxasFixas);
+  const resultado =
+    valor -
+    (descontoAntecipacao + valor * totalTaxasPercentuais + totalTaxasFixas);
 
   // Gerar número interno e público sequencial
   const totalDuplicatas = await prisma.duplicata.count();
