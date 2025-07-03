@@ -41,15 +41,29 @@ export async function GET(request: Request, context: any) {
     doc.moveDown(0.5);
 
     bordero.duplicatas.forEach((d) => {
+      const hoje = new Date(bordero.dataGeracao);
+      const venc = new Date(d.vencimento);
+      const diffMs = venc.getTime() - hoje.getTime();
+      const dias = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+
+      const taxa = bordero.cliente.taxaAntecipacao ?? 0;
+      const descontoPorDia = taxa / 30 / 100;
+      const desconto = d.valor * descontoPorDia * dias;
+      const resultado = d.resultado ?? d.valor - desconto;
+
       doc
         .fontSize(12)
         .text(
           `• Nº ${d.numero} | Valor: R$ ${d.valor.toFixed(
             2
-          )} | Vencimento: ${new Date(d.vencimento).toLocaleDateString(
-            "pt-BR"
-          )}`
-        );
+          )} | Vencimento: ${venc.toLocaleDateString("pt-BR")}`
+        )
+        .text(
+          `  Dias: ${dias} | Taxa: ${taxa}% | Desconto: R$ ${desconto.toFixed(
+            2
+          )} | Líquido: R$ ${resultado.toFixed(2)}`
+        )
+        .moveDown(0.3);
     });
 
     doc.moveDown();

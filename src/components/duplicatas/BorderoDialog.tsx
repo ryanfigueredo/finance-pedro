@@ -88,23 +88,33 @@ export function BorderoDialog({ duplicatas }: BorderoProps) {
             <TableRow>
               <TableHead>Número</TableHead>
               <TableHead>Vencimento</TableHead>
-              <TableHead>Valor Bruto</TableHead>
+              <TableHead>Bruto</TableHead>
               <TableHead>Dias</TableHead>
               <TableHead>Taxa</TableHead>
-              <TableHead>Valor Líquido</TableHead>
+              <TableHead>Desconto</TableHead>
+              <TableHead>Líquido</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {duplicatas.map((d) => (
-              <TableRow key={d.id}>
-                <TableCell>{d.numero}</TableCell>
-                <TableCell>{d.vencimento}</TableCell>
-                <TableCell>R$ {d.valor.toFixed(2)}</TableCell>
-                <TableCell>{d.diasRestantes}</TableCell>
-                <TableCell>{d.taxa}%</TableCell>
-                <TableCell>R$ {d.valorLiquido.toFixed(2)}</TableCell>
-              </TableRow>
-            ))}
+            {duplicatas.map((d) => {
+              const desconto = d.valor - d.valorLiquido;
+
+              return (
+                <TableRow key={d.id}>
+                  <TableCell>{d.numero}</TableCell>
+                  <TableCell>
+                    {new Date(d.vencimento).toLocaleDateString("pt-BR")}
+                  </TableCell>
+                  <TableCell>R$ {d.valor.toFixed(2)}</TableCell>
+                  <TableCell>{d.diasRestantes} dias</TableCell>
+                  <TableCell>{d.taxa}%</TableCell>
+                  <TableCell>R$ {desconto.toFixed(2)}</TableCell>
+                  <TableCell className="font-semibold text-green-600">
+                    R$ {d.valorLiquido.toFixed(2)}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
 
@@ -116,11 +126,16 @@ export function BorderoDialog({ duplicatas }: BorderoProps) {
             <strong>Valor bruto total:</strong> R$ {valorBrutoTotal.toFixed(2)}
           </p>
           <p>
-            <strong>Total de taxas:</strong> R$ {totalTaxas.toFixed(2)}
+            <strong>Total de desconto aplicado:</strong>{" "}
+            <span className="text-red-600 font-medium">
+              R$ {totalTaxas.toFixed(2)}
+            </span>
           </p>
           <p>
-            <strong>Valor líquido total:</strong> R${" "}
-            {valorLiquidoTotal.toFixed(2)}
+            <strong>Valor líquido total:</strong>{" "}
+            <span className="text-green-600 font-semibold">
+              R$ {valorLiquidoTotal.toFixed(2)}
+            </span>
           </p>
           <p>
             <strong>Prazo médio:</strong> {prazoMedio.toFixed(0)} dias

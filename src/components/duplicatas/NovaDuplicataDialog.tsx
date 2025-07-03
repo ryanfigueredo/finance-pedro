@@ -120,32 +120,23 @@ export function NovaDuplicataDialog() {
 
     const venc = new Date(vencimento);
     const hoje = new Date();
-    const dias = Math.max(
-      1,
-      Math.ceil((venc.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24))
-    );
 
-    // Normalização das taxas
-    const taxaAntecipacao = clienteSelecionado.taxaAntecipacao ?? 0; // %
-    const taxaServico = clienteSelecionado.taxaServico ?? 0; // %
-    const taxaBancaria = clienteSelecionado.taxaBancaria ?? 0; // R$
-    const taxaAdicional = clienteSelecionado.taxaAdicional ?? 0; // R$
+    const msPorDia = 1000 * 60 * 60 * 24;
+    const diffMs = venc.getTime() - hoje.getTime();
+    const dias = Math.max(0, Math.floor(diffMs / msPorDia));
 
-    // Cálculo proporcional da taxa de antecipação por dia
+    const taxaAntecipacao = clienteSelecionado.taxaAntecipacao ?? 0;
+    const taxaServico = clienteSelecionado.taxaServico ?? 0;
+    const taxaBancaria = clienteSelecionado.taxaBancaria ?? 0;
+    const taxaAdicional = clienteSelecionado.taxaAdicional ?? 0;
+
     const taxaAntecipacaoPorDia = taxaAntecipacao / 30 / 100;
     const descontoAntecipacao = valor * taxaAntecipacaoPorDia * dias;
-
-    // Cálculo da taxa de serviço percentual
     const descontoServico = valor * (taxaServico / 100);
-
-    // Soma de taxas fixas
     const descontoFixos = taxaBancaria + taxaAdicional;
 
-    // Total descontado
     const totalDescontado =
       descontoAntecipacao + descontoServico + descontoFixos;
-
-    // Saldo líquido (resultado)
     const resultadoFinal = valor - totalDescontado;
 
     setResultado(Number(resultadoFinal.toFixed(2)));
@@ -252,8 +243,8 @@ export function NovaDuplicataDialog() {
                       ).toFixed(2)}{" "}
                       por dia ×{" "}
                       {Math.max(
-                        1,
-                        Math.ceil(
+                        0,
+                        Math.floor(
                           (new Date(vencimento).getTime() -
                             new Date().getTime()) /
                             (1000 * 60 * 60 * 24)
