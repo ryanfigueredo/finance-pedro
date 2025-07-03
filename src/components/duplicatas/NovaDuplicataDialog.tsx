@@ -61,6 +61,11 @@ export function NovaDuplicataDialog() {
       setLoading(false);
       return;
     }
+    if (!session?.user?.id) {
+      alert("Erro: sessão inválida. Refaça o login.");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/duplicatas", {
