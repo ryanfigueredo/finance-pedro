@@ -73,7 +73,7 @@ export function NovaDuplicataDialog() {
           clienteId,
           sacadoNome,
           sacadoCpfCnpj,
-          userId: "f38f31fd-0974-4475-9aa3-4aab0c6d6a70",
+          userId: session?.user?.id ?? "",
         }),
       });
 
